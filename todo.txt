@@ -1,0 +1,25 @@
+
+* Prepare public apps feature
+  * auto update + stability test feature, maybe first locally, then on a hetzner server? where to put the code? maybe to the app store as the API code is already there? create cobra command "update official apps"?
+  * add package signing?
+  * when having automated updates, write that into threat model. Maybe buy a docker hub premium account in order to be able to download many images without rate limiting.
+  * make tests checking whether the setup was successful, e.g. health checks on the "main service"?
+
+* automated update via single CLI command
+* stability test, maybe add healthchecks? docker and manual ones?
+* eye to eye check? human readable summary (everything okay? if not, which app updates are not working?)
+* adaptions possible?
+* package as zips and upload; maybe have a test account in app store?
+* ensure that the current tag is replaced by a higher one than the previous one. E.g. 1.3.2 is higher that 1.2.3, even if the latter was uploaded later.
+
+gitea:
+  gitea/gitea: 1.23.8 -> 1.24.3
+  postgres: 17.4-alpine -> 17.6-alpine
+summary: all services healthy
+
+* add apps?
+  * odoo for ERP
+  * limesurvey for feedback
+  * "discuit" for memes
+  * lemmy as alternative to reddit
+  * make a video where I set up and explain all apps that are currently official + specialities in guides
