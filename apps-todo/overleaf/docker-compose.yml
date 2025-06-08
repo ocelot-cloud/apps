@@ -1,0 +1,41 @@
+services:
+  sharelatex:
+    restart: unless-stopped
+    image: sharelatex/sharelatex:3.5.5
+    container_name: sharelatex
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    stop_grace_period: 60s
+    volumes:
+      - overleaf-web:/var/lib/sharelatex
+    environment:
+      SHARELATEX_APP_NAME: Overleaf Community Edition
+      SHARELATEX_MONGO_URL: mongodb://mongo/sharelatex
+      SHARELATEX_REDIS_HOST: redis
+      REDIS_HOST: redis
+      ENABLED_LINKED_FILE_TYPES: 'project_file,project_output_file'
+      ENABLE_CONVERSIONS: 'true'
+      EMAIL_CONFIRMATION_DISABLED: 'true'
+      SHARELATEX_SITE_URL: https://<subdomain>
+
+  mongo:
+    restart: unless-stopped
+    image: mongo:4.4.20
+    container_name: mongo
+    volumes:
+      - overleaf-mongo:/data/db
+    healthcheck:
+      test: echo 'db.stats().ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  redis:
+    restart: unless-stopped
+    image: redis:5.0.14
+    container_name: redis
+    volumes:
+      - overleaf-redis:/data

@@ -1,0 +1,2 @@
+* requires domain via ENV injection?
+* requires admin account creation via script

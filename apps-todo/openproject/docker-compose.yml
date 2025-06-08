@@ -1,0 +1,8 @@
+services:
+  openproject:
+    image: openproject/community:13.4.1-slim
+    container_name: ocelotcloud_openproject_openproject
+    restart: unless-stopped
+    volumes:
+      - ocelotcloud_openproject_pgdata:/var/openproject/pgdata
+      - ocelotcloud_openproject_assets:/var/openproject/assets

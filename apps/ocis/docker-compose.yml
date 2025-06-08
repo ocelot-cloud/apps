@@ -1,0 +1,32 @@
+services:
+  ocis:
+    image: owncloud/ocis:7.1.3
+    container_name: ocelotcloud_ocis_ocis
+    entrypoint:
+      - /bin/sh
+    command: ["-c", "IDM_ADMIN_PASSWORD=ocelot ocis init || true; ocis server"]
+    environment:
+      # for production:
+      - OCIS_URL=https://ocis.${HOST}
+      - PROXY_TLS=false
+
+      # for local testing:
+      # - OCIS_URL=https://localhost:9200
+      # - PROXY_TLS=true
+
+      - OCIS_INSECURE=true
+      - OCIS_LOG_LEVEL=info
+      - SEARCH_EXTRACTOR_TYPE=tika
+      - SEARCH_EXTRACTOR_TIKA_TIKA_URL=http://ocelotcloud_ocis_tika:9998
+      - FRONTEND_FULL_TEXT_SEARCH_ENABLED=true
+    volumes:
+      - ocelotcloud_ocis_config:/etc/ocis
+      - ocelotcloud_ocis_data:/var/lib/ocis
+
+  tika:
+    image: apache/tika:3.1.0.0-full
+    container_name: ocelotcloud_ocis_tika
+
+volumes:
+  ocelotcloud_ocis_config:
+  ocelotcloud_ocis_data:

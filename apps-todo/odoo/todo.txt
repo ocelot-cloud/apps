@@ -1,0 +1,2 @@
+* first user registering seems to be an admin user?
+* not sure how to prevent self registration

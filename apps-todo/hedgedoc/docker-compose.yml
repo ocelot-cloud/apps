@@ -1,0 +1,31 @@
+services:
+  app:
+    image: quay.io/hedgedoc/hedgedoc:1.10.2
+    container_name: ocelotcloud_hedgedoc_hedgedoc
+    environment:
+      - CMD_DB_URL=postgres://hedgedoc@ocelotcloud_hedgedoc_database:5432/hedgedoc
+      # - CMD_DOMAIN=localhost
+      - CMD_URL_ADDPORT=true
+      # - CMD_ALLOW_EMAIL_REGISTER=false
+    volumes:
+      - ocelotcloud_hedgedoc_uploads:/hedgedoc/public/uploads
+    restart: unless-stopped
+    depends_on:
+      - database
+    ports:
+      - 3000:3000
+
+  database:
+    image: postgres:13.4-alpine
+    container_name: ocelotcloud_hedgedoc_database
+    environment:
+      - POSTGRES_USER=hedgedoc
+      - POSTGRES_DB=hedgedoc
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    volumes:
+      - ocelotcloud_hedgedoc_database:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  ocelotcloud_hedgedoc_database:
+  ocelotcloud_hedgedoc_uploads:

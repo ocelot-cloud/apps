@@ -1,0 +1,2 @@
+* CMD_DOMAIN must be set via the environment variable
+* dont allow self-registration? there should be a default admin account

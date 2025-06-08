@@ -1,0 +1,34 @@
+services:
+  odoo:
+    image: odoo:18.0
+    user: root
+    container_name: ocelotcloud_odoo_odoo
+    depends_on:
+      - db
+    ports:
+      - "10017:8069"
+    tty: true
+    command: --
+    environment:
+      - HOST=ocelotcloud_odoo_db
+      - USER=odoo
+      - PASSWORD=password
+    volumes:
+      - ocelotcloud_odoo_addons:/mnt/extra-addons
+      - ocelotcloud_odoo_etc:/etc/odoo
+
+  db:
+    image: postgres:16.8-alpine3.20
+    container_name: ocelotcloud_odoo_db
+    user: root
+    environment:
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=postgres
+    volumes:
+      - ocelotcloud_odoo_postgresql:/var/lib/postgresql/data
+
+volumes:
+  ocelotcloud_odoo_addons:
+  ocelotcloud_odoo_etc:
+  ocelotcloud_odoo_postgresql:
