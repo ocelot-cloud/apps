@@ -19,6 +19,9 @@
 * ensure that the current tag is replaced by a higher one than the previous one. E.g. 1.3.2 is higher that 1.2.3, even if the latter was uploaded later.
 * maybe let updates fail through a "could not be decided" code, when software is not sure whether the new tag is higher than the previous one.
 * the api to access the app store should be put in the "shared" module to avoid duplication. It will be used in three components: updater, cloud, store.
+* take care of apps/todo folder
+  * either make it a production app or remove it
+  * app package signing for official apps? then I need to safe two file in the app store: the zip and the signed checksum files
 
 gitea:
   gitea/gitea: 1.23.8 -> 1.24.3
