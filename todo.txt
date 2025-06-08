@@ -1,3 +1,8 @@
+* first use case - healthcheck
+  * use app.yml to find out at which port the app shall be running
+  * inject the ort in docker-compose yml and start app
+  * check if index page is available
+  * I need a minimal sample app for testing
 
 * Prepare public apps feature
   * auto update + stability test feature, maybe first locally, then on a hetzner server? where to put the code? maybe to the app store as the API code is already there? create cobra command "update official apps"?
@@ -11,6 +16,8 @@
 * adaptions possible?
 * package as zips and upload; maybe have a test account in app store?
 * ensure that the current tag is replaced by a higher one than the previous one. E.g. 1.3.2 is higher that 1.2.3, even if the latter was uploaded later.
+* maybe let updates fail through a "could not be decided" code, when software is not sure whether the new tag is higher than the previous one.
+* the api to access the app store should be put in the "shared" module to avoid duplication. It will be used in three components: updater, cloud, store.
 
 gitea:
   gitea/gitea: 1.23.8 -> 1.24.3
@@ -23,3 +30,4 @@ summary: all services healthy
   * "discuit" for memes
   * lemmy as alternative to reddit
   * make a video where I set up and explain all apps that are currently official + specialities in guides
+  * consider other apps from the internal list
