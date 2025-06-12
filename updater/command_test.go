@@ -54,7 +54,6 @@ func TestHealthCheck(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
 
 	// TODO mocks should not be hardcoded, but be generated dynamically using "mockery" CLI command version v3.3.5; maybe we a .mockery.yaml file?
-	// skipped: generator setup not available in this environment
 	runner := new(mocks2.RunnerMock)
 	waiter := new(mocks2.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
@@ -70,8 +69,7 @@ func TestHealthCheck(t *testing.T) {
 	waiter.AssertExpectations(t)
 }
 
-// TODO sampleapp should not be in folder "production" but in a folder next to prodcution, like "test" folder or so
-// skipped: repository structure currently provides sampleapp only in production
+// TODO sampleapp should not be in folder "production" but in a folder next to production, like "test" folder or so
 func TestUpdate(t *testing.T) {
 	dir := t.TempDir()
 	appDir := filepath.Join(dir, "app1")
@@ -115,7 +113,6 @@ func TestUpdateFailure(t *testing.T) {
 }
 
 // TODO add for testing "sampleapp2"; when updating two apps and first app update fails, continue the updating process, by now checking the next app. But in the final summary, the failed app should be reported as such. Same goes for healthchecks.
-// skipped: requires additional sample app and logic for partial failures
 
 func TestReadAppPortMissing(t *testing.T) {
 	dir := t.TempDir()
@@ -262,5 +259,4 @@ func TestUpdateAllApps(t *testing.T) {
 	assert.True(t, res[1].Success)
 }
 
-// TODO not sure if that if given at the moment, but we also need an integration test, that actually update an app, asserts that the current image is newer than the previous one before the update, and passes. I assume in order to achieve that, we must add an extra cobra command in main.go, like "test-update-integration" or so, which really conducts an app update. Also, when that update is successful, write the changed image tag to the docker compose file and assert that. FOr production we want this tool to update the image tags, and when they are healthy, a developer can commit them manually.
-// skipped: complex integration setup required
+// TODO not sure if that if given at the moment, but we also need an integration test, that actually update an app, asserts that the current image is newer than the previous one before the update, and passes. I assume in order to achieve that, we must add an extra cobra command in main.go, like "test-update-integration" or so, which really conducts an app update. Also, when that update is successful, write the changed image tag to the docker compose file and assert that. FOr production we want this tool to update the image tags, and when they are healthy, a developer can commit them manually. -> summary: in the end it is quite easy: we execute "go build && ./updater update sampleapp", and afterwards assert that the docker image tag of its docker compose yaml was updated to a newer version than before the update.
