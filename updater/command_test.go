@@ -13,6 +13,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	// NOTE: generating mocks with mockery v3.3.5 fails in this environment
+	// due to a Go version mismatch. Inline mocks are kept here for simplicity.
 )
 
 type RunnerMock struct{ mock.Mock }

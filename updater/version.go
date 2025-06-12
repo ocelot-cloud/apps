@@ -1,11 +1,23 @@
 package main
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 )
 
-func isSecondVersionNewerThanFirstVersion(first, second string) bool {
+func isSecondVersionNewerThanFirstVersion(first, second string) (bool, error) {
+	if prefix(first) != "" {
+		if prefix(first) != prefix(second) {
+			return false, fmt.Errorf("prefix mismatch: %s vs %s", prefix(first), prefix(second))
+		}
+	}
+	if suffix(first) != "" {
+		if suffix(first) != suffix(second) {
+			return false, fmt.Errorf("suffix mismatch: %s vs %s", suffix(first), suffix(second))
+		}
+	}
+
 	f := parseVersion(first)
 	s := parseVersion(second)
 	l := len(f)
@@ -22,13 +34,13 @@ func isSecondVersionNewerThanFirstVersion(first, second string) bool {
 			sv = s[i]
 		}
 		if sv > fv {
-			return true
+			return true, nil
 		}
 		if sv < fv {
-			return false
+			return false, nil
 		}
 	}
-	return false
+	return false, nil
 }
 
 func parseVersion(v string) []int {
@@ -48,4 +60,18 @@ func parseVersion(v string) []int {
 		nums = append(nums, n)
 	}
 	return nums
+}
+
+func prefix(v string) string {
+	if strings.HasPrefix(v, "v") {
+		return "v"
+	}
+	return ""
+}
+
+func suffix(v string) string {
+	if i := strings.Index(v, "-"); i != -1 {
+		return v[i:]
+	}
+	return ""
 }
