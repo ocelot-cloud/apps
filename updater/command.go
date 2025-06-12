@@ -7,7 +7,9 @@ import (
 )
 
 //go:generate mockery
-type DockerHubClient interface{}
+type DockerHubClient interface {
+	listImageTags(image string) ([]string, error)
+}
 
 type dockerHubClientReal struct{}
 
