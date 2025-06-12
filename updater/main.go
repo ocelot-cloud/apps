@@ -9,6 +9,7 @@ import (
 
 	tr "github.com/ocelot-cloud/task-runner"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 var logger = utils.ProvideLogger("info")
@@ -16,8 +17,13 @@ var logger = utils.ProvideLogger("info")
 var (
 	updaterDir = getCurrentDir()
 	projectDir = updaterDir + "/.."
-	appsDir    = filepath.Join(projectDir, "apps/production")
+	appsDir    string
 )
+
+func init() {
+	defaultDir := filepath.Join(projectDir, "apps/production")
+	rootCmd.PersistentFlags().StringVarP(&appsDir, "apps-dir", "f", defaultDir, "directory containing app definitions")
+}
 
 func getCurrentDir() string {
 	dir, err := os.Getwd()
@@ -34,6 +40,7 @@ func main() {
 	rootCmd.AddCommand(testUnitsCmd)
 	rootCmd.AddCommand(healthCmd)
 	rootCmd.AddCommand(updateCmd)
+	rootCmd.AddCommand(testIntegrationCmd)
 	rootCmd.CompletionOptions = cobra.CompletionOptions{DisableDefaultCmd: true}
 
 	if err := rootCmd.Execute(); err != nil {
@@ -88,7 +95,6 @@ var healthCmd = &cobra.Command{
 	},
 }
 
-// TODO update should be written to compose file when healthcheck is passed after update. When an update worked, simply write the new tag in the docker compose yaml. That is it. The developer will handle the persistence afterwards via manual "git commit".
 var updateCmd = &cobra.Command{
 	Use:   "update [apps...]",
 	Short: "update docker images and run health checks",
@@ -113,12 +119,50 @@ var updateCmd = &cobra.Command{
 	},
 }
 
-// TODO delete production/sampleapp; only use test/sampleapp; you may need to adda flag to cobra to specify the app folder to be used. By default/without that flag it is folder "production" used. but for local testing we need to implement sth like "-f ../apps/test" or so
+var testIntegrationCmd = &cobra.Command{
+	Use:   "test-integration",
+	Short: "run updater integration test on sampleapp",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		tr.PrintTaskDescription("running integration test")
+		composePath := filepath.Join(appsDir, "sampleapp", "docker-compose.yml")
+		data, err := os.ReadFile(composePath)
+		if err != nil {
+			return err
+		}
+		var compose map[string]any
+		if err := yaml.Unmarshal(data, &compose); err != nil {
+			return err
+		}
+		services := compose["services"].(map[string]any)
+		svc := services["sampleapp"].(map[string]any)
+		img, _ := svc["image"].(string)
+		before := imageTag(img)
 
-/* TODO add a command "test-integration":
-* get current sampleapp image tag in "sampleapp/docker-compose.yml"
-* it runs "./updater update sampleapp" (maybe command on sampleapp), must be successful
-* check that the updated/newer sampleapp image tag was written to "sampleapp/docker-compose.yml"
- */
+		mgr := buildManager()
+		res, err := mgr.Update([]string{"sampleapp"})
+		if err != nil {
+			return err
+		}
+		if len(res) == 0 || !res[0].Success {
+			return fmt.Errorf("update failed")
+		}
 
-// TODO delete "mocks" folder, install mockery v3.3.5, and "go generate ./..." the mocks dynamically before running the tests; we dont want to hard code mocks
+		data, err = os.ReadFile(composePath)
+		if err != nil {
+			return err
+		}
+		if err := yaml.Unmarshal(data, &compose); err != nil {
+			return err
+		}
+		services = compose["services"].(map[string]any)
+		svc = services["sampleapp"].(map[string]any)
+		img, _ = svc["image"].(string)
+		after := imageTag(img)
+		expected := bumpTag(before)
+		if after != expected {
+			return fmt.Errorf("expected tag %s, got %s", expected, after)
+		}
+		fmt.Printf("sampleapp updated: %s -> %s\n", before, after)
+		return nil
+	},
+}

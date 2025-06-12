@@ -296,4 +296,34 @@ func TestUpdatePartialFailure(t *testing.T) {
 	assert.Len(t, res[1].Services, 1)
 }
 
-// TODO add for testing "sampleapp2"; when updating two apps and first app update fails, continue the updating process, by now checking the next app. But in the final summary, the failed app should be reported as such. Same goes for healthchecks.
+func TestUpdateWritesComposeFile(t *testing.T) {
+	dir := t.TempDir()
+	appDir := filepath.Join(dir, "app1")
+	os.Mkdir(appDir, 0755)
+	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
+	compose := `services:
+  app1:
+    image: nginx:1.0-alpine`
+	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte(compose), 0644)
+
+	runner := new(mocks2.RunnerMock)
+	waiter := new(mocks2.WaiterMock)
+	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
+
+	runner.On("Run", appDir, "docker compose pull").Return(nil)
+	runner.On("Run", appDir, mock.Anything).Return(nil)
+	waiter.On("WaitPort", "80").Return(nil)
+	waiter.On("WaitWeb", "http://localhost:80").Return(nil)
+
+	_, err := m.Update([]string{"app1"})
+	assert.NoError(t, err)
+
+	data, err := os.ReadFile(filepath.Join(appDir, "docker-compose.yml"))
+	assert.NoError(t, err)
+	var obj map[string]any
+	err = yaml.Unmarshal(data, &obj)
+	assert.NoError(t, err)
+	services := obj["services"].(map[string]any)
+	svc := services["app1"].(map[string]any)
+	assert.Equal(t, "nginx:2.1-alpine", svc["image"])
+}

@@ -284,6 +284,33 @@ func (m AppManager) Update(appNames []string) ([]UpdateResult, error) {
 			results = append(results, UpdateResult{App: name, Success: false, Error: herr, Services: svcUpdates})
 			continue
 		}
+
+		for _, su := range svcUpdates {
+			svcMap := servicesYaml[su.Service].(map[string]any)
+			imgStr, _ := svcMap["image"].(string)
+			if imgStr == "" {
+				continue
+			}
+			parts := strings.Split(imgStr, ":")
+			if len(parts) < 2 {
+				continue
+			}
+			base := parts[0]
+			rest := strings.Join(parts[1:], ":")
+			if i := strings.Index(rest, "-"); i != -1 {
+				rest = su.After + rest[i:]
+			} else {
+				rest = su.After
+			}
+			svcMap["image"] = base + ":" + rest
+			servicesYaml[su.Service] = svcMap
+		}
+		compose["services"] = servicesYaml
+		out, err := yaml.Marshal(compose)
+		if err == nil {
+			os.WriteFile(composePath, out, fs.FileMode(0644))
+		}
+
 		results = append(results, UpdateResult{App: name, Success: true, Services: svcUpdates})
 	}
 	return results, nil
