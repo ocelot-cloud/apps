@@ -36,3 +36,7 @@ func (d *dockerHubClientReal) listImageTags(image string) ([]string, error) {
 	}
 	return tags, nil
 }
+
+func filterLatestImageTag(originalTag string, tagList []string) (string, bool, error) {
+	return "", false, nil
+}
