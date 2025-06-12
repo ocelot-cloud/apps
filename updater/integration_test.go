@@ -8,9 +8,6 @@ import (
 	"testing"
 )
 
-// TestUpdateCommand builds the updater binary and runs an update on sampleapp.
-// It verifies that the docker-compose.yml file in apps/test is updated with a
-// bumped tag. The file is restored after the test.
 func TestUpdateCommand(t *testing.T) {
 	if _, err := exec.LookPath("docker"); err != nil {
 		t.Skip("docker not installed")
