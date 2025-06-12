@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// TODO make this test work
 func TestUpdateCommand(t *testing.T) {
 	t.Skip()
 	return
