@@ -47,3 +47,5 @@ func TestFilterLatestImageTag(t *testing.T) {
 // sampleTagList := []string{"latest", "1.21", "1.22", "1.23", "v1.24", "1.25-alpine", "v1.26-alpine"}
 // TODO case: mixes tag schemas, like 1.2 and 1.2.3 -> stick to the original tag schema
 // TODO also test with custom 1) prefix and 2) suffix
+// TODO maybe publish this at the end as CLI tool so others can use it
+// TODO do I need and app store GUI at all, if I can simply interact with the server via CLI? Maybe even smarter, since it can automate stuff like updating, zipping, signing and uploading the app, etc.
