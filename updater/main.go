@@ -49,6 +49,7 @@ var rootCmd = &cobra.Command{
 	},
 }
 
+// TODO improve coverage
 var testUnitsCmd = &cobra.Command{
 	Use:   "test",
 	Short: "execute updater unit tests",
@@ -85,6 +86,7 @@ var healthCmd = &cobra.Command{
 	},
 }
 
+// TODO update should be written to compose file when healthcheck is passed after update
 var updateCmd = &cobra.Command{
 	Use:   "update [apps...]",
 	Short: "update docker images and run health checks",
