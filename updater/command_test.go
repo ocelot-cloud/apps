@@ -13,26 +13,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	mocks "updater/mocks"
 )
-
-type RunnerMock struct{ mock.Mock }
-
-func (m *RunnerMock) Run(dir, command string) error {
-	args := m.Called(dir, command)
-	return args.Error(0)
-}
-
-type WaiterMock struct{ mock.Mock }
-
-func (m *WaiterMock) WaitPort(port string) error {
-	args := m.Called(port)
-	return args.Error(0)
-}
-
-func (m *WaiterMock) WaitWeb(url string) error {
-	args := m.Called(url)
-	return args.Error(0)
-}
 
 func TestReadAppPort(t *testing.T) {
 	dir := t.TempDir()
@@ -71,8 +53,8 @@ func TestHealthCheck(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
 
-	runner := new(RunnerMock)
-	waiter := new(WaiterMock)
+	runner := new(mocks.RunnerMock)
+	waiter := new(mocks.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir, mock.Anything).Return(nil)
@@ -95,8 +77,8 @@ func TestUpdate(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
 
-	runner := new(RunnerMock)
-	waiter := new(WaiterMock)
+	runner := new(mocks.RunnerMock)
+	waiter := new(mocks.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir, "docker compose pull").Return(nil)
@@ -118,8 +100,8 @@ func TestUpdateFailure(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
 
-	runner := new(RunnerMock)
-	waiter := new(WaiterMock)
+	runner := new(mocks.RunnerMock)
+	waiter := new(mocks.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir, "docker compose pull").Return(nil)
@@ -229,8 +211,8 @@ func TestHealthCheckAllApps(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir2, "app.yml"), []byte("port: 81"), 0644)
 	os.WriteFile(filepath.Join(appDir2, "docker-compose.yml"), []byte("services:\n  app2:\n    image: nginx"), 0644)
 
-	runner := new(RunnerMock)
-	waiter := new(WaiterMock)
+	runner := new(mocks.RunnerMock)
+	waiter := new(mocks.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir1, mock.Anything).Return(nil)
@@ -259,8 +241,8 @@ func TestUpdateAllApps(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir2, "app.yml"), []byte("port: 81"), 0644)
 	os.WriteFile(filepath.Join(appDir2, "docker-compose.yml"), []byte("services:\n  app2:\n    image: nginx"), 0644)
 
-	runner := new(RunnerMock)
-	waiter := new(WaiterMock)
+	runner := new(mocks.RunnerMock)
+	waiter := new(mocks.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir1, "docker compose pull").Return(nil)
@@ -293,8 +275,8 @@ func TestUpdatePartialFailure(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir2, "app.yml"), []byte("port: 81"), 0644)
 	os.WriteFile(filepath.Join(appDir2, "docker-compose.yml"), []byte("services:\n  app2:\n    image: nginx"), 0644)
 
-	runner := new(RunnerMock)
-	waiter := new(WaiterMock)
+	runner := new(mocks.RunnerMock)
+	waiter := new(mocks.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir1, "docker compose pull").Return(nil)
@@ -324,8 +306,8 @@ func TestUpdateWritesComposeFile(t *testing.T) {
     image: nginx:1.0-alpine`
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte(compose), 0644)
 
-	runner := new(RunnerMock)
-	waiter := new(WaiterMock)
+	runner := new(mocks.RunnerMock)
+	waiter := new(mocks.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir, "docker compose pull").Return(nil)
