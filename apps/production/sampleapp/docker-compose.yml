@@ -1,5 +1,0 @@
-services:
-  sampleapp:
-    image: nginx:1.25-alpine
-    container_name: ocelotcloud_sampleapp
-

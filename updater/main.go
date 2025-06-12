@@ -18,11 +18,12 @@ var (
 	updaterDir = getCurrentDir()
 	projectDir = updaterDir + "/.."
 	appsDir    string
+	testDir    = projectDir + "/apps/test"
 )
 
 func init() {
 	defaultDir := filepath.Join(projectDir, "apps/production")
-	rootCmd.PersistentFlags().StringVarP(&appsDir, "apps-dir", "f", defaultDir, "directory containing app definitions")
+	rootCmd.PersistentFlags().StringVarP(&appsDir, "path-apps-dir", "p", defaultDir, "directory containing app definitions")
 }
 
 func getCurrentDir() string {
@@ -119,12 +120,13 @@ var updateCmd = &cobra.Command{
 	},
 }
 
+// TODO This is not how the application is meant to work. I want that when I execute the update command, there are actual requests made to dockerhub looking for the latest tags, and then updating the docker-compose.yml files with those tags. The mocked stuff in the background is just for local testing. But I also need a real implementation doing rela requests to dockerhub. So what this test should be doing is executing the "production mode" tool ike this: "./updater update sampleapp -f ../apps/test"; now sure, but we may need a function like "isSecondVersionNewerThanFirstVersion(first, second string), e.g. comapring versions like 1.2.3 and 4.5.6, which must give true. should also handle inputs like v1.2.3 or 1.2.3-alpine"
 var testIntegrationCmd = &cobra.Command{
 	Use:   "test-integration",
 	Short: "run updater integration test on sampleapp",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		tr.PrintTaskDescription("running integration test")
-		composePath := filepath.Join(appsDir, "sampleapp", "docker-compose.yml")
+		composePath := filepath.Join(testDir, "sampleapp", "docker-compose.yml")
 		data, err := os.ReadFile(composePath)
 		if err != nil {
 			return err
@@ -166,3 +168,5 @@ var testIntegrationCmd = &cobra.Command{
 		return nil
 	},
 }
+
+// TODO delete "mocks" folder, make "_mock.go" ignored by git, install mockery v3.3.5; so that on a fresh cloned project I need to execute "go generate ./..." to generate the mocks before running the tests; we dont want to hard code mocks
