@@ -15,6 +15,12 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// NOTE: we keep the test mocks inline because the project requires Go 1.24
+// whereas mockery v3 only parses packages when built with the same version.
+// The CI environment provides Go 1.23.8, so `go generate` fails with a
+// "package requires newer Go version" error. Once the Go toolchain is updated
+// we can switch back to generated mocks.
+
 type RunnerMock struct{ mock.Mock }
 
 func (m *RunnerMock) Run(dir, command string) error {
