@@ -1,11 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ocelot-cloud/shared/utils"
 	"os"
 	"path/filepath"
-	"time"
 
 	tr "github.com/ocelot-cloud/task-runner"
 	"github.com/spf13/cobra"
@@ -37,7 +35,6 @@ func main() {
 	tr.HandleSignals()
 
 	rootCmd.AddCommand(testUnitsCmd)
-	rootCmd.AddCommand(healthCmd)
 	rootCmd.CompletionOptions = cobra.CompletionOptions{DisableDefaultCmd: true}
 
 	if err := rootCmd.Execute(); err != nil {
@@ -60,33 +57,5 @@ var testUnitsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		tr.PrintTaskDescription("execute unit tests")
 		tr.ExecuteInDir(updaterDir, "go test -count=1 ./...")
-	},
-}
-
-func buildManager() AppManager {
-	return AppManager{
-		AppsDir: appsDir,
-		Runner:  CmdRunner{},
-		Waiter:  DefaultWaiter{Timeout: time.Minute},
-	}
-}
-
-var healthCmd = &cobra.Command{
-	Use:   "healthcheck [apps...]",
-	Short: "run health checks for production apps",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		tr.PrintTaskDescription("running health checks")
-		mgr := buildManager()
-		results, err := mgr.HealthCheck(args)
-		if err != nil {
-			return err
-		}
-		fmt.Println("summary: all services healthy")
-		for _, r := range results {
-			if r.Success {
-				fmt.Printf("- %s\n", r.App)
-			}
-		}
-		return nil
 	},
 }
