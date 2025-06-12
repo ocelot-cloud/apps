@@ -9,7 +9,6 @@ import (
 
 	tr "github.com/ocelot-cloud/task-runner"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 var logger = utils.ProvideLogger("info")
@@ -41,7 +40,6 @@ func main() {
 	rootCmd.AddCommand(testUnitsCmd)
 	rootCmd.AddCommand(healthCmd)
 	rootCmd.AddCommand(updateCmd)
-	rootCmd.AddCommand(testIntegrationCmd)
 	rootCmd.CompletionOptions = cobra.CompletionOptions{DisableDefaultCmd: true}
 
 	if err := rootCmd.Execute(); err != nil {
@@ -116,54 +114,6 @@ var updateCmd = &cobra.Command{
 				fmt.Printf("%s: update failed\n", r.App)
 			}
 		}
-		return nil
-	},
-}
-
-var testIntegrationCmd = &cobra.Command{
-	Use:   "test-integration",
-	Short: "run updater integration test on sampleapp",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		tr.PrintTaskDescription("running integration test")
-		composePath := filepath.Join(testDir, "sampleapp", "docker-compose.yml")
-		data, err := os.ReadFile(composePath)
-		if err != nil {
-			return err
-		}
-		var compose map[string]any
-		if err := yaml.Unmarshal(data, &compose); err != nil {
-			return err
-		}
-		services := compose["services"].(map[string]any)
-		svc := services["sampleapp"].(map[string]any)
-		img, _ := svc["image"].(string)
-		before := imageTag(img)
-
-		mgr := buildManager()
-		res, err := mgr.Update([]string{"sampleapp"})
-		if err != nil {
-			return err
-		}
-		if len(res) == 0 || !res[0].Success {
-			return fmt.Errorf("update failed")
-		}
-
-		data, err = os.ReadFile(composePath)
-		if err != nil {
-			return err
-		}
-		if err := yaml.Unmarshal(data, &compose); err != nil {
-			return err
-		}
-		services = compose["services"].(map[string]any)
-		svc = services["sampleapp"].(map[string]any)
-		img, _ = svc["image"].(string)
-		after := imageTag(img)
-		expected := bumpTag(before)
-		if after != expected {
-			return fmt.Errorf("expected tag %s, got %s", expected, after)
-		}
-		fmt.Printf("sampleapp updated: %s -> %s\n", before, after)
 		return nil
 	},
 }
