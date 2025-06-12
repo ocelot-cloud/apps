@@ -9,8 +9,6 @@ import (
 
 	tr "github.com/ocelot-cloud/task-runner"
 	"github.com/spf13/cobra"
-
-	"updater/appmanager"
 )
 
 var (
@@ -60,11 +58,11 @@ var testUnitsCmd = &cobra.Command{
 	},
 }
 
-func buildManager() appmanager.AppManager {
-	return appmanager.AppManager{
+func buildManager() AppManager {
+	return AppManager{
 		AppsDir: appsDir,
-		Runner:  appmanager.CmdRunner{},
-		Waiter:  appmanager.DefaultWaiter{Timeout: time.Minute},
+		Runner:  CmdRunner{},
+		Waiter:  DefaultWaiter{Timeout: time.Minute},
 	}
 }
 

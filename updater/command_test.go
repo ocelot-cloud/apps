@@ -1,4 +1,4 @@
-package appmanager
+package main
 
 import (
 	"net"
@@ -9,11 +9,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+	mocks2 "updater/mocks"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-
-	"updater/appmanager/mocks"
 )
 
 func TestReadAppPort(t *testing.T) {
@@ -46,8 +45,8 @@ func TestHealthCheck(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
 
-	runner := new(mocks.RunnerMock)
-	waiter := new(mocks.WaiterMock)
+	runner := new(mocks2.RunnerMock)
+	waiter := new(mocks2.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir, mock.Anything).Return(nil)
@@ -68,8 +67,8 @@ func TestUpdate(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
 
-	runner := new(mocks.RunnerMock)
-	waiter := new(mocks.WaiterMock)
+	runner := new(mocks2.RunnerMock)
+	waiter := new(mocks2.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir, "docker compose pull").Return(nil)
@@ -90,8 +89,8 @@ func TestUpdateFailure(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
 
-	runner := new(mocks.RunnerMock)
-	waiter := new(mocks.WaiterMock)
+	runner := new(mocks2.RunnerMock)
+	waiter := new(mocks2.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir, "docker compose pull").Return(nil)
@@ -191,8 +190,8 @@ func TestHealthCheckAllApps(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
 
-	runner := new(mocks.RunnerMock)
-	waiter := new(mocks.WaiterMock)
+	runner := new(mocks2.RunnerMock)
+	waiter := new(mocks2.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir, mock.Anything).Return(nil)
@@ -211,8 +210,8 @@ func TestUpdateAllApps(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
 
-	runner := new(mocks.RunnerMock)
-	waiter := new(mocks.WaiterMock)
+	runner := new(mocks2.RunnerMock)
+	waiter := new(mocks2.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
 
 	runner.On("Run", appDir, "docker compose pull").Return(nil)
