@@ -10,7 +10,7 @@ import (
 	tr "github.com/ocelot-cloud/task-runner"
 	"github.com/spf13/cobra"
 
-	"updater/internal/appmanager"
+	"updater/appmanager"
 )
 
 var (

@@ -15,18 +15,17 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Runner executes shell commands in a directory.
+//go:generate mockery --name Runner --output ./mocks --filename runner_mock.go
 type Runner interface {
 	Run(dir, command string) error
 }
 
-// Waiter waits for ports and URLs to become ready.
+//go:generate mockery --name Waiter --output ./mocks --filename waiter_mock.go
 type Waiter interface {
 	WaitPort(port string) error
 	WaitWeb(url string) error
 }
 
-// CmdRunner is a Runner implementation using os/exec.
 type CmdRunner struct{}
 
 func (CmdRunner) Run(dir, command string) error {
@@ -37,7 +36,6 @@ func (CmdRunner) Run(dir, command string) error {
 	return cmd.Run()
 }
 
-// DefaultWaiter waits until network endpoints are reachable.
 type DefaultWaiter struct {
 	Timeout time.Duration
 }
@@ -69,14 +67,12 @@ func (w DefaultWaiter) WaitWeb(url string) error {
 	return fmt.Errorf("url %s not ready", url)
 }
 
-// AppManager runs health checks and updates for apps located in AppsDir.
 type AppManager struct {
 	AppsDir string
 	Runner  Runner
 	Waiter  Waiter
 }
 
-// ListApps returns available apps in AppsDir.
 func (m AppManager) ListApps() ([]string, error) {
 	entries, err := os.ReadDir(m.AppsDir)
 	if err != nil {
@@ -91,7 +87,6 @@ func (m AppManager) ListApps() ([]string, error) {
 	return names, nil
 }
 
-// ReadAppPort reads the exposed port from app.yml.
 func ReadAppPort(appDir string) (string, error) {
 	data, err := os.ReadFile(filepath.Join(appDir, "app.yml"))
 	if err != nil {
@@ -107,10 +102,12 @@ func ReadAppPort(appDir string) (string, error) {
 	if p, ok := obj["port"].(string); ok {
 		return p, nil
 	}
+	if _, ok := obj["port"]; !ok {
+		return "80", nil
+	}
 	return "", errors.New("port not found")
 }
 
-// injectPort injects a port mapping into a compose file and writes a temp file.
 func injectPort(composePath, service, port string) (string, error) {
 	data, err := os.ReadFile(composePath)
 	if err != nil {
@@ -126,7 +123,6 @@ func injectPort(composePath, service, port string) (string, error) {
 	}
 	svc, ok := services[service].(map[string]any)
 	if !ok {
-		// if service key differs, use first service
 		for _, v := range services {
 			if s, ok := v.(map[string]any); ok {
 				svc = s
@@ -163,7 +159,6 @@ func injectPort(composePath, service, port string) (string, error) {
 	return temp, nil
 }
 
-// HealthCheck runs health checks for the given apps. If appNames is empty, all apps are checked.
 func (m AppManager) HealthCheck(appNames []string) ([]string, error) {
 	if len(appNames) == 0 {
 		var err error
@@ -206,7 +201,6 @@ func (m AppManager) HealthCheck(appNames []string) ([]string, error) {
 	return healthy, nil
 }
 
-// Update updates docker images and verifies stability.
 func (m AppManager) Update(appNames []string) ([]UpdateResult, error) {
 	if len(appNames) == 0 {
 		var err error
