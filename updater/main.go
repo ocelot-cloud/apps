@@ -35,11 +35,9 @@ func getCurrentDir() string {
 
 func main() {
 	tr.HandleSignals()
-	logger.Info("sample log")
 
 	rootCmd.AddCommand(testUnitsCmd)
 	rootCmd.AddCommand(healthCmd)
-	rootCmd.AddCommand(updateCmd)
 	rootCmd.CompletionOptions = cobra.CompletionOptions{DisableDefaultCmd: true}
 
 	if err := rootCmd.Execute(); err != nil {
@@ -61,8 +59,7 @@ var testUnitsCmd = &cobra.Command{
 	Short: "execute updater unit tests",
 	Run: func(cmd *cobra.Command, args []string) {
 		tr.PrintTaskDescription("execute unit tests")
-		tr.ExecuteInDir(updaterDir, "go test -count=1 -coverprofile=coverage.out ./...")
-		tr.ExecuteInDir(updaterDir, "go tool cover -func=coverage.out")
+		tr.ExecuteInDir(updaterDir, "go test -count=1 ./...")
 	},
 }
 
@@ -88,30 +85,6 @@ var healthCmd = &cobra.Command{
 		for _, r := range results {
 			if r.Success {
 				fmt.Printf("- %s\n", r.App)
-			}
-		}
-		return nil
-	},
-}
-
-var updateCmd = &cobra.Command{
-	Use:   "update [apps...]",
-	Short: "update docker images and run health checks",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		tr.PrintTaskDescription("updating images")
-		mgr := buildManager()
-		results, err := mgr.Update(args)
-		if err != nil {
-			return err
-		}
-		for _, r := range results {
-			if r.Success {
-				fmt.Printf("%s:\n", r.App)
-				for _, s := range r.Services {
-					fmt.Printf("  %s: %s -> %s\n", s.Service, s.Before, s.After)
-				}
-			} else {
-				fmt.Printf("%s: update failed\n", r.App)
 			}
 		}
 		return nil

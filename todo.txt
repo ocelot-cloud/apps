@@ -1,3 +1,5 @@
+* make a test run of "updater update" on sampleapp. use a mock and assert that the app would have been updated
+
 * first use case - healthcheck
   * use app.yml to find out at which port the app shall be running
   * inject the port in docker-compose yml and start app
