@@ -135,16 +135,13 @@ func injectPort(composePath, service, port string) (string, error) {
 	}
 	ports, _ := svc["ports"].([]any)
 	mapping := fmt.Sprintf("%s:%s", port, port)
-	found := false
 	for _, p := range ports {
 		if ps, ok := p.(string); ok && strings.HasPrefix(ps, port+":") {
-			found = true
+			return "", fmt.Errorf("port %s already mapped", port)
 		}
 	}
-	if !found {
-		ports = append(ports, mapping)
-		svc["ports"] = ports
-	}
+	ports = append(ports, mapping)
+	svc["ports"] = ports
 	services[service] = svc
 	compose["services"] = services
 

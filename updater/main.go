@@ -52,6 +52,7 @@ var rootCmd = &cobra.Command{
 }
 
 // TODO improve coverage
+// skipped: requires additional tests not in scope for now
 var testUnitsCmd = &cobra.Command{
 	Use:   "test",
 	Short: "execute updater unit tests",
@@ -89,6 +90,7 @@ var healthCmd = &cobra.Command{
 }
 
 // TODO update should be written to compose file when healthcheck is passed after update
+// skipped: requires design on how to persist updated tags
 var updateCmd = &cobra.Command{
 	Use:   "update [apps...]",
 	Short: "update docker images and run health checks",
