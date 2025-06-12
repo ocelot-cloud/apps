@@ -156,7 +156,13 @@ func injectPort(composePath, service, port string) (string, error) {
 	return temp, nil
 }
 
-func (m AppManager) HealthCheck(appNames []string) ([]string, error) {
+type HealthCheckResult struct {
+	App     string
+	Success bool
+	Error   error
+}
+
+func (m AppManager) HealthCheck(appNames []string) ([]HealthCheckResult, error) {
 	if len(appNames) == 0 {
 		var err error
 		appNames, err = m.ListApps()
@@ -164,38 +170,43 @@ func (m AppManager) HealthCheck(appNames []string) ([]string, error) {
 			return nil, err
 		}
 	}
-	var healthy []string
+	var results []HealthCheckResult
 	for _, name := range appNames {
 		appDir := filepath.Join(m.AppsDir, name)
 		port, err := ReadAppPort(appDir)
 		if err != nil {
+			results = append(results, HealthCheckResult{App: name, Success: false, Error: err})
 			continue
 		}
 		composePath := filepath.Join(appDir, "docker-compose.yml")
 		temp, err := injectPort(composePath, name, port)
 		if err != nil {
-			return healthy, err
+			results = append(results, HealthCheckResult{App: name, Success: false, Error: err})
+			continue
 		}
 		up := fmt.Sprintf("docker compose -f %s up -d", filepath.Base(temp))
 		if err := m.Runner.Run(appDir, up); err != nil {
 			os.Remove(temp)
-			return healthy, err
+			results = append(results, HealthCheckResult{App: name, Success: false, Error: err})
+			continue
 		}
 		if err := m.Waiter.WaitPort(port); err != nil {
 			m.Runner.Run(appDir, fmt.Sprintf("docker compose -f %s down -v", filepath.Base(temp)))
 			os.Remove(temp)
-			return healthy, err
+			results = append(results, HealthCheckResult{App: name, Success: false, Error: err})
+			continue
 		}
 		if err := m.Waiter.WaitWeb("http://localhost:" + port); err != nil {
 			m.Runner.Run(appDir, fmt.Sprintf("docker compose -f %s down -v", filepath.Base(temp)))
 			os.Remove(temp)
-			return healthy, err
+			results = append(results, HealthCheckResult{App: name, Success: false, Error: err})
+			continue
 		}
-		healthy = append(healthy, name)
+		results = append(results, HealthCheckResult{App: name, Success: true})
 		m.Runner.Run(appDir, fmt.Sprintf("docker compose -f %s down -v", filepath.Base(temp)))
 		os.Remove(temp)
 	}
-	return healthy, nil
+	return results, nil
 }
 
 func (m AppManager) Update(appNames []string) ([]UpdateResult, error) {
@@ -214,10 +225,19 @@ func (m AppManager) Update(appNames []string) ([]UpdateResult, error) {
 			results = append(results, UpdateResult{App: name, Success: false, Error: err})
 			continue
 		}
-		_, err := m.HealthCheck([]string{name})
+		res, err := m.HealthCheck([]string{name})
 		if err != nil {
 			m.Runner.Run(appDir, "git checkout -- docker-compose.yml")
 			results = append(results, UpdateResult{App: name, Success: false, Error: err})
+			continue
+		}
+		if len(res) == 0 || !res[0].Success {
+			m.Runner.Run(appDir, "git checkout -- docker-compose.yml")
+			var herr error
+			if len(res) > 0 {
+				herr = res[0].Error
+			}
+			results = append(results, UpdateResult{App: name, Success: false, Error: herr})
 			continue
 		}
 		results = append(results, UpdateResult{App: name, Success: true})

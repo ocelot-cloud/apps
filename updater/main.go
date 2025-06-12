@@ -75,13 +75,15 @@ var healthCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		tr.PrintTaskDescription("running health checks")
 		mgr := buildManager()
-		healthy, err := mgr.HealthCheck(args)
+		results, err := mgr.HealthCheck(args)
 		if err != nil {
 			return err
 		}
 		fmt.Println("summary: all services healthy")
-		for _, name := range healthy {
-			fmt.Printf("- %s\n", name)
+		for _, r := range results {
+			if r.Success {
+				fmt.Printf("- %s\n", r.App)
+			}
 		}
 		return nil
 	},

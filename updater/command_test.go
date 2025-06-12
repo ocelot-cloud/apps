@@ -62,9 +62,11 @@ func TestHealthCheck(t *testing.T) {
 	waiter.On("WaitPort", "80").Return(nil)
 	waiter.On("WaitWeb", "http://localhost:80").Return(nil)
 
-	healthy, err := m.HealthCheck([]string{"app1"})
+	results, err := m.HealthCheck([]string{"app1"})
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"app1"}, healthy)
+	assert.Len(t, results, 1)
+	assert.True(t, results[0].Success)
+	assert.Equal(t, "app1", results[0].App)
 	runner.AssertExpectations(t)
 	waiter.AssertExpectations(t)
 }
@@ -222,9 +224,11 @@ func TestHealthCheckAllApps(t *testing.T) {
 	waiter.On("WaitWeb", "http://localhost:80").Return(nil)
 	waiter.On("WaitWeb", "http://localhost:81").Return(nil)
 
-	healthy, err := m.HealthCheck(nil)
+	results, err := m.HealthCheck(nil)
 	assert.NoError(t, err)
-	assert.ElementsMatch(t, []string{"app1", "app2"}, healthy)
+	assert.Len(t, results, 2)
+	assert.True(t, results[0].Success)
+	assert.True(t, results[1].Success)
 }
 
 func TestUpdateAllApps(t *testing.T) {
@@ -256,6 +260,37 @@ func TestUpdateAllApps(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, res, 2)
 	assert.True(t, res[0].Success)
+	assert.True(t, res[1].Success)
+}
+
+func TestUpdatePartialFailure(t *testing.T) {
+	dir := t.TempDir()
+	appDir1 := filepath.Join(dir, "app1")
+	os.Mkdir(appDir1, 0755)
+	os.WriteFile(filepath.Join(appDir1, "app.yml"), []byte("port: 80"), 0644)
+	os.WriteFile(filepath.Join(appDir1, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
+
+	appDir2 := filepath.Join(dir, "app2")
+	os.Mkdir(appDir2, 0755)
+	os.WriteFile(filepath.Join(appDir2, "app.yml"), []byte("port: 81"), 0644)
+	os.WriteFile(filepath.Join(appDir2, "docker-compose.yml"), []byte("services:\n  app2:\n    image: nginx"), 0644)
+
+	runner := new(mocks2.RunnerMock)
+	waiter := new(mocks2.WaiterMock)
+	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
+
+	runner.On("Run", appDir1, "docker compose pull").Return(nil)
+	runner.On("Run", appDir2, "docker compose pull").Return(nil)
+	runner.On("Run", appDir1, mock.Anything).Return(nil)
+	runner.On("Run", appDir2, mock.Anything).Return(nil)
+	waiter.On("WaitPort", "80").Return(assert.AnError)
+	waiter.On("WaitPort", "81").Return(nil)
+	waiter.On("WaitWeb", "http://localhost:81").Return(nil)
+
+	res, err := m.Update([]string{"app1", "app2"})
+	assert.NoError(t, err)
+	assert.Len(t, res, 2)
+	assert.False(t, res[0].Success)
 	assert.True(t, res[1].Success)
 }
 
