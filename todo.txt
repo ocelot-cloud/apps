@@ -1,12 +1,11 @@
 * first use case - healthcheck
   * use app.yml to find out at which port the app shall be running
-  * inject the ort in docker-compose yml and start app
+  * inject the port in docker-compose yml and start app
   * check if index page is available
   * I need a minimal sample app for testing
 
 * Prepare public apps feature
-  * auto update + stability test feature, maybe first locally, then on a hetzner server? where to put the code? maybe to the app store as the API code is already there? create cobra command "update official apps"?
-  * add package signing?
+  * auto update + stability test feature
   * when having automated updates, write that into threat model. Maybe buy a docker hub premium account in order to be able to download many images without rate limiting.
   * make tests checking whether the setup was successful, e.g. health checks on the "main service"?
 
@@ -22,6 +21,8 @@
 * take care of apps/todo folder
   * either make it a production app or remove it
   * app package signing for official apps? then I need to safe two file in the app store: the zip and the signed checksum files
+* upload stable apps to the app store in t he end
+* add package signing?
 
 gitea:
   gitea/gitea: 1.23.8 -> 1.24.3
