@@ -112,3 +112,13 @@ var updateCmd = &cobra.Command{
 		return nil
 	},
 }
+
+// TODO delete production/sampleapp; only use test/sampleapp; you may need to adda flag to cobra to specify the app folder to be used. By default/without that flag it is folder "production" used. but for local testing we need to implement sth like "-f ../apps/test" or so
+
+/* TODO add a command "test-integration":
+* get current sampleapp image tag in "sampleapp/docker-compose.yml"
+* it runs "./updater update sampleapp" (maybe command on sampleapp), must be successful
+* check that the updated/newer sampleapp image tag was written to "sampleapp/docker-compose.yml"
+ */
+
+// TODO delete "mocks" folder, install mockery v3.3.5, and "go generate ./..." the mocks dynamically before running the tests; we dont want to hard code mocks
