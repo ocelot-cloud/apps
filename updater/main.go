@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/ocelot-cloud/shared/utils"
 	tr "github.com/ocelot-cloud/task-runner"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -9,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 )
+
+var logger = utils.ProvideLogger("info")
 
 var (
 	updaterDir = getCurrentDir()
@@ -26,6 +29,7 @@ func getCurrentDir() string {
 
 func main() {
 	tr.HandleSignals()
+	logger.Info("sample log")
 
 	rootCmd.AddCommand(testUnitsCmd)
 	rootCmd.AddCommand(updateCmd)

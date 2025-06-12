@@ -24,6 +24,10 @@
 * upload stable apps to the app store in t he end
 * add package signing?
 
+* option to ignore updates on specific service, e.g. the database
+* option to apply extra logic on versions, e.g. regexes or assertion that new version is higher than old one, but not sure about this, as this seems to be quite app specific?
+*
+
 gitea:
   gitea/gitea: 1.23.8 -> 1.24.3
   postgres: 17.4-alpine -> 17.6-alpine

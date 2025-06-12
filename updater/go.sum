@@ -3,6 +3,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2s0bqwp9tc8=
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
+github.com/ocelot-cloud/shared v0.0.94 h1:OFUJ2vV2JsFKwTY3qMBGE0GMWZNPCbMDwnlrmCBiabU=
+github.com/ocelot-cloud/shared v0.0.94/go.mod h1:KtHpdCrS/2XB6bW42aVHdrYUlXTvLvuM7vdZocEMo1E=
 github.com/ocelot-cloud/task-runner v0.0.22 h1:UarH1r4jaqr4qdSrRKGZ6sLOBieMMDC1//5A6LQq6gI=
 github.com/ocelot-cloud/task-runner v0.0.22/go.mod h1:c01x3+g+C0EEFAshDbrd8JcgpgGr5a+qbwzGjeX1wN0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
