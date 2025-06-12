@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/ocelot-cloud/shared/utils"
-	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -102,9 +101,12 @@ var updateCmd = &cobra.Command{
 		}
 		for _, r := range results {
 			if r.Success {
-				log.Printf("%s: update successful", r.App)
+				fmt.Printf("%s:\n", r.App)
+				for _, s := range r.Services {
+					fmt.Printf("  %s: %s -> %s\n", s.Service, s.Before, s.After)
+				}
 			} else {
-				log.Printf("%s: update failed: %v", r.App, r.Error)
+				fmt.Printf("%s: update failed\n", r.App)
 			}
 		}
 		return nil

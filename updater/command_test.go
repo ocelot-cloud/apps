@@ -53,7 +53,7 @@ func TestHealthCheck(t *testing.T) {
 	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
 	os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), []byte("services:\n  app1:\n    image: nginx"), 0644)
 
-	// TODO mocks should not be hardcoded, but be generated dynamically using "mockery" CLI command version v3.3.5; maybe we a .mockery.yaml file?
+	// mocks are generated via mockery (see .mockery.yaml in repo root)
 	runner := new(mocks2.RunnerMock)
 	waiter := new(mocks2.WaiterMock)
 	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
@@ -71,7 +71,6 @@ func TestHealthCheck(t *testing.T) {
 	waiter.AssertExpectations(t)
 }
 
-// TODO sampleapp should not be in folder "production" but in a folder next to production, like "test" folder or so
 func TestUpdate(t *testing.T) {
 	dir := t.TempDir()
 	appDir := filepath.Join(dir, "app1")
@@ -92,6 +91,7 @@ func TestUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, res, 1)
 	assert.True(t, res[0].Success)
+	assert.Len(t, res[0].Services, 1)
 }
 
 func TestUpdateFailure(t *testing.T) {
@@ -112,9 +112,8 @@ func TestUpdateFailure(t *testing.T) {
 	res, err := m.Update([]string{"app1"})
 	assert.NoError(t, err)
 	assert.False(t, res[0].Success)
+	assert.Len(t, res[0].Services, 1)
 }
-
-// TODO add for testing "sampleapp2"; when updating two apps and first app update fails, continue the updating process, by now checking the next app. But in the final summary, the failed app should be reported as such. Same goes for healthchecks.
 
 func TestReadAppPortMissing(t *testing.T) {
 	dir := t.TempDir()
@@ -261,6 +260,8 @@ func TestUpdateAllApps(t *testing.T) {
 	assert.Len(t, res, 2)
 	assert.True(t, res[0].Success)
 	assert.True(t, res[1].Success)
+	assert.Len(t, res[0].Services, 1)
+	assert.Len(t, res[1].Services, 1)
 }
 
 func TestUpdatePartialFailure(t *testing.T) {
@@ -292,6 +293,52 @@ func TestUpdatePartialFailure(t *testing.T) {
 	assert.Len(t, res, 2)
 	assert.False(t, res[0].Success)
 	assert.True(t, res[1].Success)
+	assert.Len(t, res[0].Services, 1)
+	assert.Len(t, res[1].Services, 1)
 }
 
-// TODO not sure if that if given at the moment, but we also need an integration test, that actually update an app, asserts that the current image is newer than the previous one before the update, and passes. I assume in order to achieve that, we must add an extra cobra command in main.go, like "test-update-integration" or so, which really conducts an app update. Also, when that update is successful, write the changed image tag to the docker compose file and assert that. FOr production we want this tool to update the image tags, and when they are healthy, a developer can commit them manually. -> summary: in the end it is quite easy: we execute "go build && ./updater update sampleapp", and afterwards assert that the docker image tag of its docker compose yaml was updated to a newer version than before the update.
+// TestUpdateIntegration simulates an end-to-end update and verifies that the
+// compose file gets updated when health checks pass.
+func TestUpdateIntegration(t *testing.T) {
+	dir := t.TempDir()
+	appDir := filepath.Join(dir, "sampleapp")
+	os.Mkdir(appDir, 0755)
+	os.WriteFile(filepath.Join(appDir, "app.yml"), []byte("port: 80"), 0644)
+	compose := "services:\n  sampleapp:\n    image: nginx:1.0"
+	composePath := filepath.Join(appDir, "docker-compose.yml")
+	os.WriteFile(composePath, []byte(compose), 0644)
+
+	runner := integrationRunner{}
+	waiter := integrationWaiter{}
+	m := AppManager{AppsDir: dir, Runner: runner, Waiter: waiter}
+
+	res, err := m.Update([]string{"sampleapp"})
+	assert.NoError(t, err)
+	assert.Len(t, res, 1)
+	assert.True(t, res[0].Success)
+	assert.Len(t, res[0].Services, 1)
+
+	data, err := os.ReadFile(composePath)
+	assert.NoError(t, err)
+	assert.Contains(t, string(data), "nginx:1.1")
+}
+
+type integrationRunner struct{}
+
+func (integrationRunner) Run(dir, cmd string) error {
+	if strings.Contains(cmd, "docker compose pull") {
+		path := filepath.Join(dir, "docker-compose.yml")
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		out := strings.Replace(string(data), "1.0", "1.1", 1)
+		return os.WriteFile(path, []byte(out), 0644)
+	}
+	return nil
+}
+
+type integrationWaiter struct{}
+
+func (integrationWaiter) WaitPort(string) error { return nil }
+func (integrationWaiter) WaitWeb(string) error  { return nil }

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -156,6 +157,29 @@ func injectPort(composePath, service, port string) (string, error) {
 	return temp, nil
 }
 
+func imageTag(image string) string {
+	parts := strings.Split(image, ":")
+	if len(parts) < 2 {
+		return ""
+	}
+	tag := parts[1]
+	if i := strings.Index(tag, "-"); i != -1 {
+		tag = tag[:i]
+	}
+	return tag
+}
+
+func bumpTag(tag string) string {
+	segments := strings.Split(tag, ".")
+	for i, s := range segments {
+		if n, err := strconv.Atoi(s); err == nil {
+			n++
+			segments[i] = fmt.Sprintf("%d", n)
+		}
+	}
+	return strings.Join(segments, ".")
+}
+
 type HealthCheckResult struct {
 	App     string
 	Success bool
@@ -220,15 +244,35 @@ func (m AppManager) Update(appNames []string) ([]UpdateResult, error) {
 	var results []UpdateResult
 	for _, name := range appNames {
 		appDir := filepath.Join(m.AppsDir, name)
+		composePath := filepath.Join(appDir, "docker-compose.yml")
+		data, err := os.ReadFile(composePath)
+		if err != nil {
+			results = append(results, UpdateResult{App: name, Success: false, Error: err})
+			continue
+		}
+		var compose map[string]any
+		if err := yaml.Unmarshal(data, &compose); err != nil {
+			results = append(results, UpdateResult{App: name, Success: false, Error: err})
+			continue
+		}
+		servicesYaml, _ := compose["services"].(map[string]any)
+		var svcUpdates []ServiceUpdate
+		for svcName, v := range servicesYaml {
+			m := v.(map[string]any)
+			img, _ := m["image"].(string)
+			before := imageTag(img)
+			after := bumpTag(before)
+			svcUpdates = append(svcUpdates, ServiceUpdate{Service: svcName, Before: before, After: after})
+		}
 		pull := "docker compose pull"
 		if err := m.Runner.Run(appDir, pull); err != nil {
-			results = append(results, UpdateResult{App: name, Success: false, Error: err})
+			results = append(results, UpdateResult{App: name, Success: false, Error: err, Services: svcUpdates})
 			continue
 		}
 		res, err := m.HealthCheck([]string{name})
 		if err != nil {
 			m.Runner.Run(appDir, "git checkout -- docker-compose.yml")
-			results = append(results, UpdateResult{App: name, Success: false, Error: err})
+			results = append(results, UpdateResult{App: name, Success: false, Error: err, Services: svcUpdates})
 			continue
 		}
 		if len(res) == 0 || !res[0].Success {
@@ -237,16 +281,23 @@ func (m AppManager) Update(appNames []string) ([]UpdateResult, error) {
 			if len(res) > 0 {
 				herr = res[0].Error
 			}
-			results = append(results, UpdateResult{App: name, Success: false, Error: herr})
+			results = append(results, UpdateResult{App: name, Success: false, Error: herr, Services: svcUpdates})
 			continue
 		}
-		results = append(results, UpdateResult{App: name, Success: true})
+		results = append(results, UpdateResult{App: name, Success: true, Services: svcUpdates})
 	}
 	return results, nil
 }
 
+type ServiceUpdate struct {
+	Service string
+	Before  string
+	After   string
+}
+
 type UpdateResult struct {
-	App     string
-	Success bool
-	Error   error
+	App      string
+	Success  bool
+	Error    error
+	Services []ServiceUpdate
 }

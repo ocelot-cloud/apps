@@ -1,0 +1,3 @@
+output: updater/mocks
+with-expecter: false
+version: v3.3.5
