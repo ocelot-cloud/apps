@@ -1,0 +1,9 @@
+packages:
+  updater:
+    interfaces:
+      DockerHubClient:
+        config:
+          dir: .
+          filename: dockerhub_client_mock.go
+          structname: DockerHubClientMock
+          pkgname: main

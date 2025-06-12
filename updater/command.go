@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+//go:generate mockery
 type DockerHubClient interface{}
 
 type dockerHubClientReal struct{}
