@@ -1,9 +1,9 @@
-structname: '{{.InterfaceName}}Mock'
-pkgname: mocks
-template: testify
-dir: updater/mocks
 packages:
   updater:
+    config:
+      dir: updater/mocks
+      outpkg: mocks
+      mockname: '{{.InterfaceName}}Mock'
     interfaces:
       Runner: {}
       Waiter: {}

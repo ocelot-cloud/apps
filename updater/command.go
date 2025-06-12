@@ -16,12 +16,12 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-//go:generate mockery --name Runner --output ./mocks --filename runner_mock.go
+//go:generate mockery
 type Runner interface {
 	Run(dir, command string) error
 }
 
-//go:generate mockery --name Waiter --output ./mocks --filename waiter_mock.go
+//go:generate mockery
 type Waiter interface {
 	WaitPort(port string) error
 	WaitWeb(url string) error
