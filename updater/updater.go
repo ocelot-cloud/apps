@@ -7,6 +7,8 @@ type FileSystemOperator interface {
 	GetPortOfApp(appDir string) (string, error)
 	InjectPortInDockerCompose(appDir string) error
 	RunInjectedDockerCompose(appDir string) error
+	GetDockerComposeFileContent(appDir string) ([]byte, error)
+	WriteDockerComposeFileContent(appDir string, content []byte) error
 }
 
 //go:generate mockery
@@ -90,7 +92,7 @@ func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 	return u.conductLogic(false)
 }
 
-func writeAppHealthReport(app, errorMessage string, err error) AppHealthReport {
+func getAppHealthReport(app, errorMessage string, err error) AppHealthReport {
 	return AppHealthReport{
 		AppName:      app,
 		Healthy:      false,
@@ -123,35 +125,49 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 
 func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bool, app string) AppHealthReport {
 	appDir := u.appsDir + "/" + app
+	var originalDockerComposeContent []byte
 	if conductTagUpdatesBeforeHealthcheck {
-		err := u.appUpdater.update(appDir)
+		var err error
+		originalDockerComposeContent, err = u.fileSystemOperator.GetDockerComposeFileContent(appDir)
 		if err != nil {
-			return writeAppHealthReport(app, "Failed to update app", err)
+			return getAppHealthReport(app, "Failed to get docker-compose file content", err)
+		}
+
+		err = u.appUpdater.update(appDir)
+		if err != nil {
+			u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent) // TODO tests should fail when missing
+			return getAppHealthReport(app, "Failed to update app", err)
 		}
 	}
-
 	port, err := u.fileSystemOperator.GetPortOfApp(appDir)
 	if err != nil {
-		return writeAppHealthReport(app, "Failed to get port", err)
+		return getAppHealthReport(app, "Failed to get port", err)
 	}
-	err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
+	err = u.fileSystemOperator.InjectPortInDockerCompose(appDir) // TODO in real implementation, I will create a "docker-compose-injected.yml" that will be deleted at the end; make an assertion that there is no such file at the end
 	if err != nil {
-		return writeAppHealthReport(app, "Failed to inject port in docker-compose", err)
+		return getAppHealthReport(app, "Failed to inject port in docker-compose", err)
 	}
 
 	err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
 	if err != nil {
-		return writeAppHealthReport(app, "Failed to run docker-compose", err)
+		return getAppHealthReport(app, "Failed to run docker-compose", err)
 	}
 	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
 	if err != nil {
-		return writeAppHealthReport(app, "Failed to access index page", err)
+		return getAppHealthReport(app, "Failed to access index page", err)
 		// TODO if conductTagUpdatesBeforeHealthcheck -> set tag back to previous version
 	}
 	return AppHealthReport{
 		AppName:      app,
 		Healthy:      true,
 		ErrorMessage: "",
+	}
+}
+
+func (u *Updater) resetDockerComposeYamlToInitialContent(appDir string, originalDockerComposeContent []byte) {
+	err2 := u.fileSystemOperator.WriteDockerComposeFileContent(appDir, originalDockerComposeContent)
+	if err2 != nil {
+		logger.Error("Failed to write docker-compose file back to original state: %s", err2.Error())
 	}
 }
 

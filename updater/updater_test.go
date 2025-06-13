@@ -156,11 +156,14 @@ func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to access index page")
 }
 
+// TODO use EXPECT() to define the order of calls, remove the On() calls
+
 func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
 	singleAppUpdaterMock.On("update", appDir).Return(nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
 	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
@@ -176,6 +179,7 @@ func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
 	singleAppUpdaterMock.On("update", appDir).Return(nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
 	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
@@ -191,7 +195,9 @@ func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {
 	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
 	singleAppUpdaterMock.On("update", appDir).Return(errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(appDir, []byte("sample content")).Return(nil)
 
 	performUpdateAndAssertFailedAppReport(t, updater, "Failed to update app", "some error")
 }
@@ -276,3 +282,4 @@ func TestAppUpdater_FilterLatestImageTagFails(t *testing.T) {
 }
 
 // TODO main: if not all apps are healthy in report, exit with code 1
+// TODO introduce mutation testing in every component
