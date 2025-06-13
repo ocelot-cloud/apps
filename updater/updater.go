@@ -34,10 +34,10 @@ type Service struct {
 }
 
 type Updater struct {
-	appsDir            string
-	fileSystemOperator FileSystemOperator
-	endpointChecker    EndpointChecker
-	dockerHubClient    DockerHubClient
+	appsDir       string
+	fs            FileSystemOperator
+	healthChecker HealthChecker
+	imageUpdater  ImageUpdater
 }
 
 type HealthCheckReport struct {
@@ -71,8 +71,8 @@ func (u *Updater) PerformUpdate() (*HealthCheckReport, error) {
 }
 
 // TODO add argument []string, if empty perform on all apps, otherwise only on specified apps
-func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*HealthCheckReport, error) {
-	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
+func (u *Updater) conductLogic(updateBeforeCheck bool) (*HealthCheckReport, error) {
+	apps, err := u.fs.GetListOfApps(u.appsDir)
 	if err != nil {
 		return nil, err
 	}
@@ -82,65 +82,18 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 	for _, app := range apps {
 		appDir := u.appsDir + "/" + app
 
-		if conductTagUpdatesBeforeHealthcheck {
-			services, err := u.fileSystemOperator.GetImagesOfApp(appDir)
-			if err != nil {
-				addErrorToReport(report, app, "Failed to get images of app", err)
-				continue
-			}
-
-			didErrorOccur := false
-			for _, service := range services {
-				latestTagsFromDockerHub, err := u.dockerHubClient.listImageTags(service.Image)
-				if err != nil {
-					addErrorToReport(report, app, "Failed to get latest tags from Docker Hub for service "+service.Name, err)
-					didErrorOccur = true
-					break
-				}
-				newTag, wasNewerTagFound, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
-				if err != nil {
-					addErrorToReport(report, app, "Failed to filter latest image tag for service "+service.Name, err)
-					didErrorOccur = true
-					break
-				}
-				if wasNewerTagFound {
-					err = u.fileSystemOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
-					if err != nil {
-						addErrorToReport(report, app, "Failed to write new tag to docker-compose for service "+service.Name, err)
-						didErrorOccur = true
-						break
-					}
-				} else {
-					logger.Info("No newer tag found for service " + service.Name + " in app " + app)
-				}
-			}
-			if didErrorOccur {
+		if updateBeforeCheck {
+			if opErr := u.imageUpdater.UpdateImages(appDir); opErr != nil {
+				addErrorToReport(report, app, opErr.message, opErr.err)
 				continue
 			}
 		}
 
-		port, err := u.fileSystemOperator.GetPortOfApp(appDir)
-		if err != nil {
-			addErrorToReport(report, app, "Failed to get port", err)
-			continue
-		}
-		err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
-		if err != nil {
-			addErrorToReport(report, app, "Failed to inject port in docker-compose", err)
+		if opErr := u.healthChecker.CheckApp(appDir); opErr != nil {
+			addErrorToReport(report, app, opErr.message, opErr.err)
 			continue
 		}
 
-		err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
-		if err != nil {
-			addErrorToReport(report, app, "Failed to run docker-compose", err)
-			continue
-		}
-		err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
-		if err != nil {
-			addErrorToReport(report, app, "Failed to access index page", err)
-			// TODO if conductTagUpdatesBeforeHealthcheck -> set tag back to previous version
-			continue
-		}
 		report.AppReports = append(report.AppReports, AppHealthReport{
 			AppName:      app,
 			Healthy:      true,

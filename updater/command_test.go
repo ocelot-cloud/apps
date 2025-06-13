@@ -22,7 +22,7 @@ func TestDockerTagPull(t *testing.T) {
 
 func TestDockerhubMock(t *testing.T) {
 	mockDockerHubClient := NewDockerHubClientMock(t)
-	mockDockerHubClient.EXPECT().listImageTags("nginx").Return([]string{"latest", "1.21", "1.22"}, nil)
+	mockDockerHubClient.On("listImageTags", "nginx").Return([]string{"latest", "1.21", "1.22"}, nil)
 
 	tags, err := mockDockerHubClient.listImageTags("nginx")
 	assert.Nil(t, err)
