@@ -11,14 +11,15 @@ const (
 	appDir      = mockAppsDir + "/sampleapp"
 )
 
+var (
+	fileSystemOperatorMock *FileSystemOperatorMock
+	endpointCheckerMock    *EndpointCheckerMock
+	updater                *Updater
+)
+
 func TestUpdater_PerformHealthCheck(t *testing.T) {
-	fileSystemOperatorMock := NewFileSystemOperatorMock(t)
-	endpointCheckerMock := NewEndpointCheckerMock(t)
-	updater := Updater{
-		appsDir:            mockAppsDir,
-		fileSystemOperator: fileSystemOperatorMock,
-		endpointChecker:    endpointCheckerMock,
-	}
+	setup(t)
+	defer assertMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
@@ -33,19 +34,26 @@ func TestUpdater_PerformHealthCheck(t *testing.T) {
 	appReport := report.AppReports[0]
 	assert.Equal(t, "sampleapp", appReport.AppName)
 	assert.True(t, appReport.Healthy)
+}
 
+func setup(t *testing.T) {
+	fileSystemOperatorMock = NewFileSystemOperatorMock(t)
+	endpointCheckerMock = NewEndpointCheckerMock(t)
+	updater = &Updater{
+		appsDir:            mockAppsDir,
+		fileSystemOperator: fileSystemOperatorMock,
+		endpointChecker:    endpointCheckerMock,
+	}
+}
+
+func assertMockExpectations(t *testing.T) {
 	fileSystemOperatorMock.AssertExpectations(t)
 	endpointCheckerMock.AssertExpectations(t)
 }
 
 func TestUpdater_GetAppsFails(t *testing.T) {
-	fileSystemOperatorMock := NewFileSystemOperatorMock(t)
-	endpointCheckerMock := NewEndpointCheckerMock(t)
-	updater := Updater{
-		appsDir:            mockAppsDir,
-		fileSystemOperator: fileSystemOperatorMock,
-		endpointChecker:    endpointCheckerMock,
-	}
+	setup(t)
+	defer assertMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, errors.New("some error"))
 
@@ -53,19 +61,11 @@ func TestUpdater_GetAppsFails(t *testing.T) {
 	assert.Nil(t, report)
 	assert.NotNil(t, err)
 	assert.Equal(t, "some error", err.Error())
-
-	fileSystemOperatorMock.AssertExpectations(t)
-	endpointCheckerMock.AssertExpectations(t)
 }
 
 func TestUpdater_GetPortOfAppFails(t *testing.T) {
-	fileSystemOperatorMock := NewFileSystemOperatorMock(t)
-	endpointCheckerMock := NewEndpointCheckerMock(t)
-	updater := Updater{
-		appsDir:            mockAppsDir,
-		fileSystemOperator: fileSystemOperatorMock,
-		endpointChecker:    endpointCheckerMock,
-	}
+	setup(t)
+	defer assertMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("", errors.New("some error"))
@@ -78,9 +78,6 @@ func TestUpdater_GetPortOfAppFails(t *testing.T) {
 	assert.Equal(t, "sampleapp", appReport.AppName)
 	assert.False(t, appReport.Healthy)
 	assert.Equal(t, "Failed to get port: some error", appReport.ErrorMessage)
-
-	fileSystemOperatorMock.AssertExpectations(t)
-	endpointCheckerMock.AssertExpectations(t)
 }
 
 // TODO main: if not all apps are healthy in report, exit with code 1
