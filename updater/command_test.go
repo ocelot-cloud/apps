@@ -59,7 +59,7 @@ func TestFilterLatestImageTag(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			newTag, wasNewerVersionFound, err := filterLatestImageTag(tc.originalTag, tc.tagList)
+			newTag, wasNewerVersionFound, err := FilterLatestImageTag(tc.originalTag, tc.tagList)
 			if tc.errorMsg != "" {
 				assert.Equal(t, tc.errorMsg, err.Error())
 			}

@@ -39,7 +39,7 @@ func (d *dockerHubClientReal) listImageTags(image string) ([]string, error) {
 	return tags, nil
 }
 
-func filterLatestImageTag(originalTag string, tagList []string) (string, bool, error) {
+func FilterLatestImageTag(originalTag string, tagList []string) (string, bool, error) {
 	prefix, originalTag, tagList := trimPrefix(originalTag, tagList)
 	suffix, originalTag, tagList := trimSuffix(originalTag, tagList)
 
