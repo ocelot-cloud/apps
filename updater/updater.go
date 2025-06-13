@@ -64,7 +64,12 @@ func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 		appDir := u.appsDir + "/" + app
 		port, err := u.fileSystemOperator.GetPortOfApp(appDir)
 		if err != nil {
-			// TODO write to report
+			report.AllAppsHealthy = false
+			report.AppReports = append(report.AppReports, AppHealthReport{
+				AppName:      app,
+				Healthy:      false,
+				ErrorMessage: "Failed to get port: " + err.Error(),
+			})
 			continue
 		}
 		err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
