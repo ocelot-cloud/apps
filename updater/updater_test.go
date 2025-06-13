@@ -204,7 +204,9 @@ func TestAppUpdaterSuccess(t *testing.T) {
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
 	fileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(nil)
 
-	assert.Nil(t, singleAppUpdaterReal.update(appDir))
+	wasAnyServiceUpdated, err := singleAppUpdaterReal.update(appDir)
+	assert.Nil(t, err)
+	assert.True(t, wasAnyServiceUpdated)
 }
 
 func TestAppUpdater_GetImagesOfAppFails(t *testing.T) {
@@ -212,7 +214,9 @@ func TestAppUpdater_GetImagesOfAppFails(t *testing.T) {
 	defer assertSingleAppUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return(nil, errors.New("some error"))
-	assert.Equal(t, "some error", singleAppUpdaterReal.update(appDir).Error())
+
+	_, err := singleAppUpdaterReal.update(appDir)
+	assert.Equal(t, "some error", err.Error())
 }
 
 func TestAppUpdater_ListImageTagsFails(t *testing.T) {
@@ -223,7 +227,9 @@ func TestAppUpdater_ListImageTagsFails(t *testing.T) {
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return(nil, errors.New("some error"))
-	assert.Equal(t, "some error", singleAppUpdaterReal.update(appDir).Error())
+
+	_, err := singleAppUpdaterReal.update(appDir)
+	assert.Equal(t, "some error", err.Error())
 }
 
 func TestAppUpdater_WriteNewTagToDockerComposeFails(t *testing.T) {
@@ -236,7 +242,10 @@ func TestAppUpdater_WriteNewTagToDockerComposeFails(t *testing.T) {
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
 	fileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(errors.New("some error"))
 
-	assert.Equal(t, "some error", singleAppUpdaterReal.update(appDir).Error())
+	_, err := singleAppUpdaterReal.update(appDir)
+	assert.Equal(t, "some error", err.Error())
 }
+
+// TODO check case if no update was conducted, i.e. no newer tag found
 
 // TODO main: if not all apps are healthy in report, exit with code 1

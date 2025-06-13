@@ -37,31 +37,36 @@ type SingleAppUpdaterReal struct {
 	dockerHubClient    DockerHubClient
 }
 
-func (a *SingleAppUpdaterReal) update(appDir string) error {
+func (a *SingleAppUpdaterReal) update(appDir string) (bool, error) {
 	services, err := a.fileSystemOperator.GetImagesOfApp(appDir)
 	if err != nil {
-		return err
+		return false, err
 	}
 
+	wasAnyServiceUpdated := false
 	for _, service := range services {
 		latestTagsFromDockerHub, err := a.dockerHubClient.listImageTags(service.Image)
 		if err != nil {
-			return err
+			return false, err
 		}
 		newTag, wasNewerTagFound, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
 		if err != nil {
-			return err
+			return false, err
 		}
 		if wasNewerTagFound {
 			err = a.fileSystemOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
 			if err != nil {
-				return err
+				return false, err
 			}
-		} else {
-			logger.Info("No newer tag found for service " + service.Name + " in app dir: " + appDir)
+			wasAnyServiceUpdated = true
 		}
 	}
-	return nil
+	if wasAnyServiceUpdated {
+		return true, nil
+	} else {
+		logger.Info("No updates found for app at: %s", appDir)
+		return false, nil
+	}
 }
 
 type Service struct {
