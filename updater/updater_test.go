@@ -5,8 +5,12 @@ import (
 	"testing"
 )
 
+const (
+	mockAppsDir = "/test_apps_dir"
+	appDir      = mockAppsDir + "/sampleapp"
+)
+
 func TestUpdater_PerformHealthCheck(t *testing.T) {
-	mockAppsDir := "/test_apps_dir"
 	fileSystemOperatorMock := NewFileSystemOperatorMock(t)
 	endpointCheckerMock := NewEndpointCheckerMock(t)
 	updater := Updater{
@@ -15,7 +19,6 @@ func TestUpdater_PerformHealthCheck(t *testing.T) {
 		endpointChecker:    endpointCheckerMock,
 	}
 
-	appDir := mockAppsDir + "/sampleapp"
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
 	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)

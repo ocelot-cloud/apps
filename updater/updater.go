@@ -53,6 +53,7 @@ type AppHealthReport struct {
 func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
 	if err != nil {
+		// TODO to be covered
 		return nil, err
 	}
 
