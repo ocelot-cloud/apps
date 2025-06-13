@@ -53,7 +53,8 @@ func TestFilterLatestImageTag(t *testing.T) {
 
 		// TODO add prefixes and suffixes to tags
 		{"ignore different prefixes and suffixes", "1.22", []string{"1.21", "1.23", "v1.24", "1.24-alpine", "v1.24-alpine"}, true, "1.23", ""},
-		// TODO {"word original tag causes error", "v1.22", []string{"1.21", "1.24", "v1.21", "v1.23"}, true, "", ""},
+		{"find newest tag with same prefix", "v1.22", []string{"1.21", "1.24", "v1.21", "v1.23"}, true, "v1.23", ""},
+		// TODO same suffix, same prefix and suffix
 	}
 
 	for _, tc := range tests {

@@ -40,6 +40,22 @@ func (d *dockerHubClientReal) listImageTags(image string) ([]string, error) {
 }
 
 func filterLatestImageTag(originalTag string, tagList []string) (string, bool, error) {
+	prefix := ""
+	if strings.HasPrefix(originalTag, "v") {
+		prefix = "v"
+		originalTag = strings.TrimPrefix(originalTag, "v")
+	}
+	if prefix != "" {
+		filtered := make([]string, 0, len(tagList))
+		for _, tag := range tagList {
+			if strings.HasPrefix(tag, "v") {
+				tagWithoutPrefix := strings.TrimPrefix(tag, "v")
+				filtered = append(filtered, tagWithoutPrefix)
+			}
+		}
+		tagList = filtered
+	}
+
 	originalTagNumbers, err := parse(originalTag)
 	if err != nil {
 		return "", false, err
@@ -59,7 +75,9 @@ func filterLatestImageTag(originalTag string, tagList []string) (string, bool, e
 	if intSlicesEqual(originalTagNumbers, tagNumbersWithHighestVersion) {
 		return "", false, nil
 	} else {
-		return intSliceToString(tagNumbersWithHighestVersion), true, nil
+		newestTag := intSliceToString(tagNumbersWithHighestVersion)
+		newestTag = prefix + newestTag
+		return newestTag, true, nil
 	}
 }
 
