@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 //go:generate mockery
@@ -38,5 +40,23 @@ func (d *dockerHubClientReal) listImageTags(image string) ([]string, error) {
 }
 
 func filterLatestImageTag(originalTag string, tagList []string) (string, bool, error) {
+	_, err := parse(originalTag)
+	if err != nil {
+		return "", false, err
+	}
 	return "", false, nil
+}
+
+func parse(tag string) ([]int, error) {
+	parts := strings.Split(tag, ".")
+	ints := make([]int, len(parts))
+	for i, p := range parts {
+		n, err := strconv.Atoi(p)
+		if err != nil {
+			logger.Error("integer conversion failed for '%s': %v", tag, err)
+			return nil, fmt.Errorf("integer conversion failed")
+		}
+		ints[i] = n
+	}
+	return ints, nil
 }

@@ -34,13 +34,54 @@ func TestDockerhubMock(t *testing.T) {
 }
 
 func TestFilterLatestImageTag(t *testing.T) {
-	originalTag := "1.22"
-	sampleTagList := []string{"1.22"}
+	tests := []struct {
+		testName         string
+		originalTag      string
+		tagList          []string
+		wasNewerTagFound bool
+		newTag           string
+	}{
+		{"todo", "1.22", []string{"1.22"}, false, ""},
+		{"todo", "1.22", []string{"1.21", "1.22"}, false, ""},
+		// TODO {"todo", "1.22", []string{"1.21", "1.23"}, true, "1.23"},
 
-	newTag, wasNewerVersionFound, err := filterLatestImageTag(originalTag, sampleTagList)
-	assert.Nil(t, err)
-	assert.False(t, wasNewerVersionFound)
-	assert.Equal(t, "", newTag)
+		// TODO also add invalid tags (with version schema like 1.2.3, e.g. stable or latest, should be skipped)
+	}
+
+	for _, test := range tests {
+		t.Run("asd", func(t *testing.T) {
+			newTag, wasNewerVersionFound, err := filterLatestImageTag(test.originalTag, test.tagList)
+			assert.Nil(t, err)
+			assert.Equal(t, test.wasNewerTagFound, wasNewerVersionFound)
+			assert.Equal(t, test.newTag, newTag)
+		})
+	}
+}
+
+func TestParse(t *testing.T) {
+	tests := []struct {
+		name      string
+		tag       string
+		want      []int
+		errSubstr string
+	}{
+		{"valid single number", "1", []int{1}, ""},
+		{"valid two numbers with prefix", "1.22", []int{1, 22}, ""},
+		{"valid three numbers with prefix", "1.2.3", []int{1, 2, 3}, ""},
+		{"invalid non-numeric", "latest", nil, "integer conversion failed"},
+		{"invalid mixed", "1.2.latest", nil, "integer conversion failed"},
+		{"empty string", "", nil, "integer conversion failed"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := parse(tt.tag)
+			if tt.errSubstr != "" {
+				assert.Equal(t, tt.errSubstr, err.Error())
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
 }
 
 // TODO add ci pipeline
