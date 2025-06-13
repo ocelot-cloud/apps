@@ -83,22 +83,22 @@ func TestUpdater_GetPortOfAppFails(t *testing.T) {
 
 func performHealthCheckAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedErrorMessage string) {
 	report, err := updater.PerformHealthCheck()
-	assertErrorInReport(t, err, report, expectedErrorMessage)
+	assertErrorInReport(t, err, report, expectedErrorMessage, "some error")
 }
 
-func assertErrorInReport(t *testing.T, err error, report *HealthCheckReport, expectedErrorMessage string) {
-	assert.Nil(t, err)
+func assertErrorInReport(t *testing.T, actualError error, report *HealthCheckReport, expectedHighLevelError, expectedLowLevelError string) {
+	assert.Nil(t, actualError)
 	assert.False(t, report.AllAppsHealthy)
 	assert.Equal(t, 1, len(report.AppReports))
 	appReport := report.AppReports[0]
 	assert.Equal(t, "sampleapp", appReport.AppName)
 	assert.False(t, appReport.Healthy)
-	assert.Equal(t, expectedErrorMessage+": some error", appReport.ErrorMessage)
+	assert.Equal(t, expectedHighLevelError+": "+expectedLowLevelError, appReport.ErrorMessage)
 }
 
-func performUpdateAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedErrorMessage string) {
+func performUpdateAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedHighLevelErrorMessage, expectedLowLevelErrorMessage string) {
 	report, err := updater.PerformUpdate()
-	assertErrorInReport(t, err, report, expectedErrorMessage)
+	assertErrorInReport(t, err, report, expectedHighLevelErrorMessage, expectedLowLevelErrorMessage)
 }
 
 func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
@@ -163,7 +163,7 @@ func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return(nil, errors.New("some error"))
 
-	performUpdateAndAssertFailedAppReport(t, updater, "Failed to get images of app")
+	performUpdateAndAssertFailedAppReport(t, updater, "Failed to get images of app", "some error")
 }
 
 func TestUpdater_PerformUpdate_ListImageTagsFails(t *testing.T) {
@@ -176,7 +176,20 @@ func TestUpdater_PerformUpdate_ListImageTagsFails(t *testing.T) {
 	}, nil)
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return(nil, errors.New("some error"))
 
-	performUpdateAndAssertFailedAppReport(t, updater, "Failed to get latest tags from Docker Hub for service sampleapp")
+	performUpdateAndAssertFailedAppReport(t, updater, "Failed to get latest tags from Docker Hub for service sampleapp", "some error")
+}
+
+func TestUpdater_PerformUpdate_FilterLatestImageTagFails(t *testing.T) {
+	setup(t)
+	defer assertMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "invalid-tag"},
+	}, nil)
+	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
+
+	performUpdateAndAssertFailedAppReport(t, updater, "Failed to filter latest image tag for service sampleapp", "integer conversion failed")
 }
 
 // TODO main: if not all apps are healthy in report, exit with code 1
