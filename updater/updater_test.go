@@ -291,21 +291,24 @@ func TestUpdater_PerformUpdate_GetDockerComposeFileContentFails(t *testing.T) {
 	performUpdateAndAssertFailedAppReport(t, updater, "Failed to get docker-compose file content", "some error")
 }
 
-/* TODO
 func TestUpdater_PerformUpdate_WriteDockerComposeFileContentFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.On("update", appDir).Return(nil)
-	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(appDir, []byte("sample content")).Return(errors.New("some error"))
+	singleAppUpdaterMock.EXPECT().update(appDir).Return(errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(appDir, []byte("sample content")).Return(errors.New("some other error"))
 
-	assert.Panics(t, func() {
-		singleAppUpdaterReal.update(appDir)
-	})
+	defer func() {
+		if r := recover(); r != nil {
+			assert.Equal(t, "Failed to write docker-compose file back to original state: some other error", r)
+		} else {
+			t.Fatal("expected panic but none occurred")
+		}
+	}()
+	updater.PerformUpdate()
 }
-*/
 
 // TODO main: if not all apps are healthy in report, exit with code 1
 // TODO introduce mutation testing in every component
