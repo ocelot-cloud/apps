@@ -75,6 +75,10 @@ func TestUpdater_GetPortOfAppFails(t *testing.T) {
 
 func performHealthCheckAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedErrorMessage string) {
 	report, err := updater.PerformHealthCheck()
+	assertReport(t, err, report, expectedErrorMessage)
+}
+
+func assertReport(t *testing.T, err error, report *HealthCheckReport, expectedErrorMessage string) {
 	assert.Nil(t, err)
 	assert.False(t, report.AllAppsHealthy)
 	assert.Equal(t, 1, len(report.AppReports))
@@ -82,6 +86,11 @@ func performHealthCheckAndAssertFailedAppReport(t *testing.T, updater *Updater, 
 	assert.Equal(t, "sampleapp", appReport.AppName)
 	assert.False(t, appReport.Healthy)
 	assert.Equal(t, expectedErrorMessage+": some error", appReport.ErrorMessage)
+}
+
+func performUpdateAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedErrorMessage string) {
+	report, err := updater.PerformUpdate()
+	assertReport(t, err, report, expectedErrorMessage)
 }
 
 func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
@@ -119,5 +128,16 @@ func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
 
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to access index page")
 }
+
+/* TODO
+func TestUpdater_PerformUpdate(t *testing.T) {
+	setup(t)
+	defer assertMockExpectations(t)
+
+	// define mock behavior
+
+	performUpdateAndAssertFailedAppReport(t, updater, "todo")
+}
+*/
 
 // TODO main: if not all apps are healthy in report, exit with code 1
