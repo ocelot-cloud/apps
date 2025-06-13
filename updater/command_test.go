@@ -35,25 +35,25 @@ func TestDockerhubMock(t *testing.T) {
 
 func TestFilterLatestImageTag(t *testing.T) {
 	tests := []struct {
-		testName         string
+		name             string
 		originalTag      string
 		tagList          []string
 		wasNewerTagFound bool
 		newTag           string
 	}{
 		{"todo", "1.22", []string{"1.22"}, false, ""},
-		{"todo", "1.22", []string{"1.21", "1.22"}, false, ""},
-		// TODO {"todo", "1.22", []string{"1.21", "1.23"}, true, "1.23"},
+		{"todo2", "1.22", []string{"1.21", "1.22"}, false, ""},
+		// TODO {"todo3", "1.22", []string{"1.21", "1.23"}, true, "1.23"},
 
 		// TODO also add invalid tags (with version schema like 1.2.3, e.g. stable or latest, should be skipped)
 	}
 
-	for _, test := range tests {
-		t.Run("asd", func(t *testing.T) {
-			newTag, wasNewerVersionFound, err := filterLatestImageTag(test.originalTag, test.tagList)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			newTag, wasNewerVersionFound, err := filterLatestImageTag(tc.originalTag, tc.tagList)
 			assert.Nil(t, err)
-			assert.Equal(t, test.wasNewerTagFound, wasNewerVersionFound)
-			assert.Equal(t, test.newTag, newTag)
+			assert.Equal(t, tc.wasNewerTagFound, wasNewerVersionFound)
+			assert.Equal(t, tc.newTag, newTag)
 		})
 	}
 }
