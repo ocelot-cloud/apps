@@ -70,6 +70,10 @@ func TestUpdater_GetPortOfAppFails(t *testing.T) {
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("", errors.New("some error"))
 
+	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to get port")
+}
+
+func performHealthCheckAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedErrorMessage string) {
 	report, err := updater.PerformHealthCheck()
 	assert.Nil(t, err)
 	assert.False(t, report.AllAppsHealthy)
@@ -77,7 +81,7 @@ func TestUpdater_GetPortOfAppFails(t *testing.T) {
 	appReport := report.AppReports[0]
 	assert.Equal(t, "sampleapp", appReport.AppName)
 	assert.False(t, appReport.Healthy)
-	assert.Equal(t, "Failed to get port: some error", appReport.ErrorMessage)
+	assert.Equal(t, expectedErrorMessage+": some error", appReport.ErrorMessage)
 }
 
 func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
@@ -88,14 +92,7 @@ func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("", nil)
 	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(errors.New("some error"))
 
-	report, err := updater.PerformHealthCheck()
-	assert.Nil(t, err)
-	assert.False(t, report.AllAppsHealthy)
-	assert.Equal(t, 1, len(report.AppReports))
-	appReport := report.AppReports[0]
-	assert.Equal(t, "sampleapp", appReport.AppName)
-	assert.False(t, appReport.Healthy)
-	assert.Equal(t, "Failed to inject port in docker-compose: some error", appReport.ErrorMessage)
+	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to inject port in docker-compose")
 }
 
 // TODO main: if not all apps are healthy in report, exit with code 1
