@@ -156,6 +156,24 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	assertHealthyReport(t, err, report)
 }
 
+func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
+	setup(t)
+	defer assertMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
+	}, nil)
+	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0"}, nil)
+	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
+	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
+	fileSystemOperatorMock.On("RunInjectedDockerCompose", appDir).Return(nil)
+	endpointCheckerMock.On("TryAccessingIndexPageOnLocalhost", "8080").Return(nil)
+
+	report, err := updater.PerformUpdate()
+	assertHealthyReport(t, err, report)
+}
+
 func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {
 	setup(t)
 	defer assertMockExpectations(t)
@@ -190,6 +208,20 @@ func TestUpdater_PerformUpdate_FilterLatestImageTagFails(t *testing.T) {
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
 
 	performUpdateAndAssertFailedAppReport(t, updater, "Failed to filter latest image tag for service sampleapp", "integer conversion failed")
+}
+
+func TestUpdater_PerformUpdate_WriteNewTagToDockerComposeFails(t *testing.T) {
+	setup(t)
+	defer assertMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
+	}, nil)
+	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
+	fileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(errors.New("some error"))
+
+	performUpdateAndAssertFailedAppReport(t, updater, "Failed to write new tag to docker-compose for service sampleapp", "some error")
 }
 
 // TODO main: if not all apps are healthy in report, exit with code 1
