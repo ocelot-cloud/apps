@@ -49,7 +49,6 @@ func filterLatestImageTag(originalTag string, tagList []string) (string, bool, e
 	for _, tag := range tagList {
 		parsed, err := parse(tag)
 		if err != nil {
-			logger.Error("failed to parse tag '%s': %v", tag, err)
 			continue
 		}
 		listOfAllTagNumbers = append(listOfAllTagNumbers, parsed)
@@ -90,7 +89,7 @@ func parse(tag string) ([]int, error) {
 	for i, p := range parts {
 		n, err := strconv.Atoi(p)
 		if err != nil {
-			logger.Error("integer conversion failed for '%s': %v", tag, err)
+			logger.Info("integer conversion failed for '%s': %v", tag, err)
 			return nil, fmt.Errorf("integer conversion failed")
 		}
 		ints[i] = n

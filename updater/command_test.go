@@ -50,6 +50,10 @@ func TestFilterLatestImageTag(t *testing.T) {
 
 		{"empty original tag causes error", "", []string{"1.21", "1.23", "1.23.2"}, false, "", "integer conversion failed"},
 		{"word original tag causes error", "latest", []string{"1.21", "1.23", "1.23.2"}, false, "", "integer conversion failed"},
+
+		// TODO add prefixes and suffixes to tags
+		{"ignore different prefixes and suffixes", "1.22", []string{"1.21", "1.23", "v1.24", "1.24-alpine", "v1.24-alpine"}, true, "1.23", ""},
+		// TODO {"word original tag causes error", "v1.22", []string{"1.21", "1.24", "v1.21", "v1.23"}, true, "", ""},
 	}
 
 	for _, tc := range tests {
@@ -129,10 +133,8 @@ func TestMaxIntSlice(t *testing.T) {
 		{"multiple slices, max in middle", 3, [][]int{{1, 2, 3}, {1, 3, 2}, {1, 2, 2}}, []int{1, 3, 2}},
 		{"equal slices", 3, [][]int{{1, 2, 3}, {1, 2, 3}}, []int{1, 2, 3}},
 
-		{"take two element slice", 2, [][]int{{1, 2}, {1, 2, 3}}, []int{1, 2}},
-		{"take three element slice", 3, [][]int{{1, 2}, {1, 2, 3}}, []int{1, 2, 3}},
-
-		// TODO try case with for element slice
+		{"take two element slice", 2, [][]int{{1, 2}, {1, 2, 3}, {1, 2, 3, 4}}, []int{1, 2}},
+		{"take three element slice", 3, [][]int{{1, 2}, {1, 2, 3}, {1, 2, 3, 4}}, []int{1, 2, 3}},
 	}
 
 	for _, tc := range tests {
