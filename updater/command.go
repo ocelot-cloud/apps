@@ -56,6 +56,23 @@ func filterLatestImageTag(originalTag string, tagList []string) (string, bool, e
 		tagList = filtered
 	}
 
+	suffix := ""
+	suffixIdx := strings.Index(originalTag, "-")
+	if suffixIdx != -1 {
+		suffix = originalTag[suffixIdx:]
+		originalTag = originalTag[:suffixIdx]
+	}
+	if suffix != "" {
+		filtered := make([]string, 0, len(tagList))
+		for _, tag := range tagList {
+			if strings.HasSuffix(tag, suffix) {
+				tagWithoutSuffix := strings.TrimSuffix(tag, suffix)
+				filtered = append(filtered, tagWithoutSuffix)
+			}
+		}
+		tagList = filtered
+	}
+
 	originalTagNumbers, err := parse(originalTag)
 	if err != nil {
 		return "", false, err
@@ -77,6 +94,7 @@ func filterLatestImageTag(originalTag string, tagList []string) (string, bool, e
 	} else {
 		newestTag := intSliceToString(tagNumbersWithHighestVersion)
 		newestTag = prefix + newestTag
+		newestTag = newestTag + suffix
 		return newestTag, true, nil
 	}
 }
