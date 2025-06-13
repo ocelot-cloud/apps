@@ -90,17 +90,14 @@ func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 	return u.conductLogic(false)
 }
 
-func addErrorToReport(report *HealthCheckReport, app, errorMessage string, err error) {
-	report.AllAppsHealthy = false
-	report.AppReports = append(report.AppReports, AppHealthReport{
+func writeAppHealthReport(app, errorMessage string, err error) AppHealthReport {
+	return AppHealthReport{
 		AppName:      app,
 		Healthy:      false,
 		ErrorMessage: errorMessage + ": " + err.Error(),
-	})
+	}
 }
 
-// TODO update, same as above, but we update images before performing healthcheck
-// TODO resolve duplication
 func (u *Updater) PerformUpdate() (*HealthCheckReport, error) {
 	return u.conductLogic(true)
 }
@@ -115,44 +112,47 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 		AllAppsHealthy: true,
 	}
 	for _, app := range apps {
-		appDir := u.appsDir + "/" + app
-		if conductTagUpdatesBeforeHealthcheck {
-			err := u.appUpdater.update(appDir)
-			if err != nil {
-				addErrorToReport(report, app, "Failed to update app", err)
-				continue
-			}
+		appReport := u.conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck, app)
+		if !appReport.Healthy {
+			report.AllAppsHealthy = false
 		}
-
-		port, err := u.fileSystemOperator.GetPortOfApp(appDir)
-		if err != nil {
-			addErrorToReport(report, app, "Failed to get port", err)
-			continue
-		}
-		err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
-		if err != nil {
-			addErrorToReport(report, app, "Failed to inject port in docker-compose", err)
-			continue
-		}
-
-		err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
-		if err != nil {
-			addErrorToReport(report, app, "Failed to run docker-compose", err)
-			continue
-		}
-		err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
-		if err != nil {
-			addErrorToReport(report, app, "Failed to access index page", err)
-			// TODO if conductTagUpdatesBeforeHealthcheck -> set tag back to previous version
-			continue
-		}
-		report.AppReports = append(report.AppReports, AppHealthReport{
-			AppName:      app,
-			Healthy:      true,
-			ErrorMessage: "",
-		})
+		report.AppReports = append(report.AppReports, appReport)
 	}
 	return report, nil
+}
+
+func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bool, app string) AppHealthReport {
+	appDir := u.appsDir + "/" + app
+	if conductTagUpdatesBeforeHealthcheck {
+		err := u.appUpdater.update(appDir)
+		if err != nil {
+			return writeAppHealthReport(app, "Failed to update app", err)
+		}
+	}
+
+	port, err := u.fileSystemOperator.GetPortOfApp(appDir)
+	if err != nil {
+		return writeAppHealthReport(app, "Failed to get port", err)
+	}
+	err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
+	if err != nil {
+		return writeAppHealthReport(app, "Failed to inject port in docker-compose", err)
+	}
+
+	err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
+	if err != nil {
+		return writeAppHealthReport(app, "Failed to run docker-compose", err)
+	}
+	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
+	if err != nil {
+		return writeAppHealthReport(app, "Failed to access index page", err)
+		// TODO if conductTagUpdatesBeforeHealthcheck -> set tag back to previous version
+	}
+	return AppHealthReport{
+		AppName:      app,
+		Healthy:      true,
+		ErrorMessage: "",
+	}
 }
 
 // TODO implement real file system operator and endpoint checker
