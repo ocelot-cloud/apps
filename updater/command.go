@@ -40,22 +40,40 @@ func (d *dockerHubClientReal) listImageTags(image string) ([]string, error) {
 }
 
 func filterLatestImageTag(originalTag string, tagList []string) (string, bool, error) {
-	prefix := ""
-	if strings.HasPrefix(originalTag, "v") {
-		prefix = "v"
-		originalTag = strings.TrimPrefix(originalTag, "v")
-	}
-	if prefix != "" {
-		filtered := make([]string, 0, len(tagList))
-		for _, tag := range tagList {
-			if strings.HasPrefix(tag, "v") {
-				tagWithoutPrefix := strings.TrimPrefix(tag, "v")
-				filtered = append(filtered, tagWithoutPrefix)
-			}
-		}
-		tagList = filtered
-	}
+	prefix, originalTag, tagList := trimPrefix(originalTag, tagList)
+	suffix, originalTag, tagList := trimSuffix(originalTag, tagList)
 
+	originalTagNumbers, err := parse(originalTag)
+	if err != nil {
+		return "", false, err
+	}
+	listOfAllTagNumbers := parseTagList(tagList)
+	listOfAllTagNumbers = append(listOfAllTagNumbers, originalTagNumbers)
+
+	tagNumbersWithHighestVersion := findMaxIntSlice(len(originalTagNumbers), listOfAllTagNumbers)
+	if intSlicesEqual(originalTagNumbers, tagNumbersWithHighestVersion) {
+		return "", false, nil
+	} else {
+		newestTag := intSliceToString(tagNumbersWithHighestVersion)
+		newestTag = prefix + newestTag
+		newestTag = newestTag + suffix
+		return newestTag, true, nil
+	}
+}
+
+func parseTagList(tagList []string) [][]int {
+	var listOfAllTagNumbers [][]int
+	for _, tag := range tagList {
+		parsed, err := parse(tag)
+		if err != nil {
+			continue
+		}
+		listOfAllTagNumbers = append(listOfAllTagNumbers, parsed)
+	}
+	return listOfAllTagNumbers
+}
+
+func trimSuffix(originalTag string, tagList []string) (string, string, []string) {
 	suffix := ""
 	suffixIdx := strings.Index(originalTag, "-")
 	if suffixIdx != -1 {
@@ -72,31 +90,26 @@ func filterLatestImageTag(originalTag string, tagList []string) (string, bool, e
 		}
 		tagList = filtered
 	}
+	return suffix, originalTag, tagList
+}
 
-	originalTagNumbers, err := parse(originalTag)
-	if err != nil {
-		return "", false, err
+func trimPrefix(originalTag string, tagList []string) (string, string, []string) {
+	prefix := ""
+	if strings.HasPrefix(originalTag, "v") {
+		prefix = "v"
+		originalTag = strings.TrimPrefix(originalTag, "v")
 	}
-
-	var listOfAllTagNumbers [][]int
-	for _, tag := range tagList {
-		parsed, err := parse(tag)
-		if err != nil {
-			continue
+	if prefix != "" {
+		filtered := make([]string, 0, len(tagList))
+		for _, tag := range tagList {
+			if strings.HasPrefix(tag, "v") {
+				tagWithoutPrefix := strings.TrimPrefix(tag, "v")
+				filtered = append(filtered, tagWithoutPrefix)
+			}
 		}
-		listOfAllTagNumbers = append(listOfAllTagNumbers, parsed)
+		tagList = filtered
 	}
-	listOfAllTagNumbers = append(listOfAllTagNumbers, originalTagNumbers)
-
-	tagNumbersWithHighestVersion := findMaxIntSlice(len(originalTagNumbers), listOfAllTagNumbers)
-	if intSlicesEqual(originalTagNumbers, tagNumbersWithHighestVersion) {
-		return "", false, nil
-	} else {
-		newestTag := intSliceToString(tagNumbersWithHighestVersion)
-		newestTag = prefix + newestTag
-		newestTag = newestTag + suffix
-		return newestTag, true, nil
-	}
+	return prefix, originalTag, tagList
 }
 
 func intSlicesEqual(a, b []int) bool {
