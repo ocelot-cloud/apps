@@ -104,13 +104,28 @@ func TestMaxIntSlice(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			got, err := maxIntSlice(tc.input)
+			got, err := findMaxIntSlice(tc.input)
 			if tc.errorMessage != "" {
 				assert.NotNil(t, err)
 				assert.Equal(t, tc.errorMessage, err.Error())
 			}
 			assert.Equal(t, tc.output, got)
 		})
+	}
+}
+
+func TestIntSliceToString(t *testing.T) {
+	tests := []struct {
+		input    []int
+		expected string
+	}{
+		{[]int{1}, "1"},
+		{[]int{1, 2}, "1.2"},
+		{[]int{1, 2, 3}, "1.2.3"},
+		{[]int{}, ""},
+	}
+	for _, tc := range tests {
+		assert.Equal(t, tc.expected, intSliceToString(tc.input))
 	}
 }
 

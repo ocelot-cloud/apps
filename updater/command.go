@@ -55,7 +55,22 @@ func filterLatestImageTag(originalTag string, tagList []string) (string, bool, e
 		slices = append(slices, parsed)
 	}
 
+	_, err = findMaxIntSlice(slices)
+	if err != nil {
+		return "", false, err
+	}
+
+	// TODO
+
 	return "", false, nil
+}
+
+func intSliceToString(slice []int) string {
+	strs := make([]string, len(slice))
+	for i, n := range slice {
+		strs[i] = strconv.Itoa(n)
+	}
+	return strings.Join(strs, ".")
 }
 
 func parse(tag string) ([]int, error) {
@@ -72,7 +87,7 @@ func parse(tag string) ([]int, error) {
 	return ints, nil
 }
 
-func maxIntSlice(slices [][]int) ([]int, error) {
+func findMaxIntSlice(slices [][]int) ([]int, error) {
 	if len(slices) == 0 {
 		return nil, fmt.Errorf("no slices passed")
 	}
