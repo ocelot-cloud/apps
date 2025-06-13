@@ -82,8 +82,6 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 	for _, app := range apps {
 		appDir := u.appsDir + "/" + app
 
-		// TODO test coverage
-
 		if conductTagUpdatesBeforeHealthcheck {
 			services, err := u.fileSystemOperator.GetImagesOfApp(appDir)
 			if err != nil {
@@ -134,7 +132,6 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 
 		err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
 		if err != nil {
-			// TODO if conductTagUpdatesBeforeHealthcheck -> set tag back to previous version
 			addErrorToReport(report, app, "Failed to run docker-compose", err)
 			continue
 		}
