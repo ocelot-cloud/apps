@@ -74,7 +74,12 @@ func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 		}
 		err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
 		if err != nil {
-			// TODO write to report
+			report.AllAppsHealthy = false
+			report.AppReports = append(report.AppReports, AppHealthReport{
+				AppName:      app,
+				Healthy:      false,
+				ErrorMessage: "Failed to inject port in docker-compose: " + err.Error(),
+			})
 			continue
 		}
 		err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)

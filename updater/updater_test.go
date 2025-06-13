@@ -80,4 +80,22 @@ func TestUpdater_GetPortOfAppFails(t *testing.T) {
 	assert.Equal(t, "Failed to get port: some error", appReport.ErrorMessage)
 }
 
+func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
+	setup(t)
+	defer assertMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("", nil)
+	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(errors.New("some error"))
+
+	report, err := updater.PerformHealthCheck()
+	assert.Nil(t, err)
+	assert.False(t, report.AllAppsHealthy)
+	assert.Equal(t, 1, len(report.AppReports))
+	appReport := report.AppReports[0]
+	assert.Equal(t, "sampleapp", appReport.AppName)
+	assert.False(t, appReport.Healthy)
+	assert.Equal(t, "Failed to inject port in docker-compose: some error", appReport.ErrorMessage)
+}
+
 // TODO main: if not all apps are healthy in report, exit with code 1
