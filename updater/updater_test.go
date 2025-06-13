@@ -281,5 +281,31 @@ func TestAppUpdater_FilterLatestImageTagFails(t *testing.T) {
 	assert.Equal(t, "integer conversion failed", err.Error())
 }
 
+func TestUpdater_PerformUpdate_GetDockerComposeFileContentFails(t *testing.T) {
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return(nil, errors.New("some error"))
+
+	performUpdateAndAssertFailedAppReport(t, updater, "Failed to get docker-compose file content", "some error")
+}
+
+/* TODO
+func TestUpdater_PerformUpdate_WriteDockerComposeFileContentFails(t *testing.T) {
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
+	singleAppUpdaterMock.On("update", appDir).Return(nil)
+	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(appDir, []byte("sample content")).Return(errors.New("some error"))
+
+	assert.Panics(t, func() {
+		singleAppUpdaterReal.update(appDir)
+	})
+}
+*/
+
 // TODO main: if not all apps are healthy in report, exit with code 1
 // TODO introduce mutation testing in every component

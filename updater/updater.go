@@ -164,9 +164,9 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 }
 
 func (u *Updater) resetDockerComposeYamlToInitialContent(appDir string, originalDockerComposeContent []byte) {
-	err2 := u.fileSystemOperator.WriteDockerComposeFileContent(appDir, originalDockerComposeContent)
-	if err2 != nil {
-		logger.Error("Failed to write docker-compose file back to original state: %s", err2.Error())
+	err := u.fileSystemOperator.WriteDockerComposeFileContent(appDir, originalDockerComposeContent)
+	if err != nil {
+		panic("Failed to write docker-compose file back to original state: " + err.Error())
 	}
 }
 
