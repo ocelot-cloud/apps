@@ -246,6 +246,31 @@ func TestAppUpdater_WriteNewTagToDockerComposeFails(t *testing.T) {
 	assert.Equal(t, "some error", err.Error())
 }
 
-// TODO check case if no update was conducted, i.e. no newer tag found
+func TestAppUpdater_SuccessButNoNewUpdateFound(t *testing.T) {
+	setupSingleAppUpdater(t)
+	defer assertSingleAppUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
+	}, nil)
+	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0"}, nil)
+
+	wasAnyServiceUpdated, err := singleAppUpdaterReal.update(appDir)
+	assert.Nil(t, err)
+	assert.False(t, wasAnyServiceUpdated)
+}
+
+func TestAppUpdater_FilterLatestImageTagFails(t *testing.T) {
+	setupSingleAppUpdater(t)
+	defer assertSingleAppUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "invalid-tag"},
+	}, nil)
+	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
+
+	_, err := singleAppUpdaterReal.update(appDir)
+	assert.Equal(t, "integer conversion failed", err.Error())
+}
 
 // TODO main: if not all apps are healthy in report, exit with code 1
