@@ -4,6 +4,12 @@ packages:
       DockerHubClient:
         config:
           dir: .
-          filename: dockerhub_client_mock.go
+          filename: command_dockerhub_client_mock.go
           structname: DockerHubClientMock
+          pkgname: main
+      FileSystemOperator:
+        config:
+          dir: .
+          filename: updater_file_system_operator_mock.go
+          structname: FileSystemOperatorMock
           pkgname: main
