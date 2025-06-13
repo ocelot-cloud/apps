@@ -13,3 +13,9 @@ packages:
           filename: updater_file_system_operator_mock.go
           structname: FileSystemOperatorMock
           pkgname: main
+      EndpointChecker:
+        config:
+          dir: .
+          filename: updater_endpoint_checker_mock.go
+          structname: EndpointCheckerMock
+          pkgname: main
