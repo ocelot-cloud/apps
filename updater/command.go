@@ -56,10 +56,7 @@ func filterLatestImageTag(originalTag string, tagList []string) (string, bool, e
 	}
 	slices = append(slices, originalSlice)
 
-	maxSlice, err := findMaxIntSlice(slices)
-	if err != nil {
-		return "", false, err
-	}
+	maxSlice := findMaxIntSlice(len(originalSlice), slices)
 
 	if intSlicesEqual(originalSlice, maxSlice) {
 		return "", false, nil
@@ -102,20 +99,21 @@ func parse(tag string) ([]int, error) {
 	return ints, nil
 }
 
-func findMaxIntSlice(slices [][]int) ([]int, error) {
+func findMaxIntSlice(desiredLength int, slices [][]int) []int {
 	if len(slices) == 0 {
-		return nil, fmt.Errorf("no slices passed")
+		return nil
 	}
-	length := len(slices[0])
-	for i, s := range slices {
-		if len(s) != length {
-			logger.Error("slice at index %d has a length %d but it must have same length as first slice with length %d", i, len(s), length)
-			return nil, fmt.Errorf("slices must have the same length")
+	var maxSlice []int
+	for _, s := range slices {
+		if len(s) != desiredLength {
+			continue
 		}
-	}
-	maxSlice := slices[0]
-	for _, s := range slices[1:] {
-		for i := 0; i < length; i++ {
+		if maxSlice == nil {
+			maxSlice = s
+			continue
+		}
+
+		for i := 0; i < desiredLength; i++ {
 			if s[i] > maxSlice[i] {
 				maxSlice = s
 				break
@@ -124,5 +122,5 @@ func findMaxIntSlice(slices [][]int) ([]int, error) {
 			}
 		}
 	}
-	return maxSlice, nil
+	return maxSlice
 }
