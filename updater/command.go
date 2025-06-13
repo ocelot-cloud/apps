@@ -42,7 +42,6 @@ func (d *dockerHubClientReal) listImageTags(image string) ([]string, error) {
 func filterLatestImageTag(originalTag string, tagList []string) (string, bool, error) {
 	originalTagNumbers, err := parse(originalTag)
 	if err != nil {
-		// TODO to be covered by tests
 		return "", false, err
 	}
 
