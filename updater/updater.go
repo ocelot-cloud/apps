@@ -81,39 +81,13 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 	}
 	for _, app := range apps {
 		appDir := u.appsDir + "/" + app
-
 		if conductTagUpdatesBeforeHealthcheck {
 			services, err := u.fileSystemOperator.GetImagesOfApp(appDir)
 			if err != nil {
 				addErrorToReport(report, app, "Failed to get images of app", err)
 				continue
 			}
-
-			didErrorOccur := false
-			for _, service := range services {
-				latestTagsFromDockerHub, err := u.dockerHubClient.listImageTags(service.Image)
-				if err != nil {
-					addErrorToReport(report, app, "Failed to get latest tags from Docker Hub for service "+service.Name, err)
-					didErrorOccur = true
-					break
-				}
-				newTag, wasNewerTagFound, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
-				if err != nil {
-					addErrorToReport(report, app, "Failed to filter latest image tag for service "+service.Name, err)
-					didErrorOccur = true
-					break
-				}
-				if wasNewerTagFound {
-					err = u.fileSystemOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
-					if err != nil {
-						addErrorToReport(report, app, "Failed to write new tag to docker-compose for service "+service.Name, err)
-						didErrorOccur = true
-						break
-					}
-				} else {
-					logger.Info("No newer tag found for service " + service.Name + " in app " + app)
-				}
-			}
+			didErrorOccur := u.updateServices(services, report, app)
 			if didErrorOccur {
 				continue
 			}
@@ -148,6 +122,36 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 		})
 	}
 	return report, nil
+}
+
+func (u *Updater) updateServices(services []Service, report *HealthCheckReport, app string) bool {
+	appDir := u.appsDir + "/" + app
+	didErrorOccur := false
+	for _, service := range services {
+		latestTagsFromDockerHub, err := u.dockerHubClient.listImageTags(service.Image)
+		if err != nil {
+			addErrorToReport(report, app, "Failed to get latest tags from Docker Hub for service "+service.Name, err)
+			didErrorOccur = true
+			break
+		}
+		newTag, wasNewerTagFound, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
+		if err != nil {
+			addErrorToReport(report, app, "Failed to filter latest image tag for service "+service.Name, err)
+			didErrorOccur = true
+			break
+		}
+		if wasNewerTagFound {
+			err = u.fileSystemOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
+			if err != nil {
+				addErrorToReport(report, app, "Failed to write new tag to docker-compose for service "+service.Name, err)
+				didErrorOccur = true
+				break
+			}
+		} else {
+			logger.Info("No newer tag found for service " + service.Name + " in app " + app)
+		}
+	}
+	return didErrorOccur
 }
 
 // TODO implement real file system operator and endpoint checker
