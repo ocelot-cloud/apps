@@ -207,4 +207,36 @@ func TestAppUpdaterSuccess(t *testing.T) {
 	assert.Nil(t, singleAppUpdaterReal.update(appDir))
 }
 
+func TestAppUpdater_GetImagesOfAppFails(t *testing.T) {
+	setupSingleAppUpdater(t)
+	defer assertSingleAppUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return(nil, errors.New("some error"))
+	assert.Equal(t, "some error", singleAppUpdaterReal.update(appDir).Error())
+}
+
+func TestAppUpdater_ListImageTagsFails(t *testing.T) {
+	setupSingleAppUpdater(t)
+	defer assertSingleAppUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
+	}, nil)
+	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return(nil, errors.New("some error"))
+	assert.Equal(t, "some error", singleAppUpdaterReal.update(appDir).Error())
+}
+
+func TestAppUpdater_WriteNewTagToDockerComposeFails(t *testing.T) {
+	setupSingleAppUpdater(t)
+	defer assertSingleAppUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
+	}, nil)
+	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
+	fileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(errors.New("some error"))
+
+	assert.Equal(t, "some error", singleAppUpdaterReal.update(appDir).Error())
+}
+
 // TODO main: if not all apps are healthy in report, exit with code 1

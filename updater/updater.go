@@ -40,25 +40,21 @@ type SingleAppUpdaterReal struct {
 func (a *SingleAppUpdaterReal) update(appDir string) error {
 	services, err := a.fileSystemOperator.GetImagesOfApp(appDir)
 	if err != nil {
-		// TODO "Failed to get images of app"
 		return err
 	}
 
 	for _, service := range services {
 		latestTagsFromDockerHub, err := a.dockerHubClient.listImageTags(service.Image)
 		if err != nil {
-			// TODO "Failed to get latest tags from Docker Hub for service "+service.Name
 			return err
 		}
 		newTag, wasNewerTagFound, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
 		if err != nil {
-			// TODO "Failed to filter latest image tag for service "+service.Name
 			return err
 		}
 		if wasNewerTagFound {
 			err = a.fileSystemOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
 			if err != nil {
-				// TODO "Failed to write new tag to docker-compose for service "+service.Name
 				return err
 			}
 		} else {
