@@ -135,7 +135,7 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 
 		err = u.appUpdater.update(appDir)
 		if err != nil {
-			u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent) // TODO tests should fail when missing
+			u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
 			return getAppHealthReport(app, "Failed to update app", err)
 		}
 	}
@@ -143,7 +143,7 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 	if err != nil {
 		return getAppHealthReport(app, "Failed to get port", err)
 	}
-	err = u.fileSystemOperator.InjectPortInDockerCompose(appDir) // TODO in real implementation, I will create a "docker-compose-injected.yml" that will be deleted at the end; make an assertion that there is no such file at the end
+	err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
 	if err != nil {
 		return getAppHealthReport(app, "Failed to inject port in docker-compose", err)
 	}
@@ -155,7 +155,6 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
 	if err != nil {
 		return getAppHealthReport(app, "Failed to access index page", err)
-		// TODO if conductTagUpdatesBeforeHealthcheck -> set tag back to previous version
 	}
 	return AppHealthReport{
 		AppName:      app,
@@ -172,3 +171,4 @@ func (u *Updater) resetDockerComposeYamlToInitialContent(appDir string, original
 }
 
 // TODO implement real file system operator and endpoint checker
+// TODO in real implementation, I will create a "docker-compose-injected.yml" that will be deleted at the end; make an assertion that there is no such file at the end
