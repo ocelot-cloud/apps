@@ -90,26 +90,34 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 				addErrorToReport(report, app, "Failed to get images of app", err)
 				continue
 			}
+
+			didErrorOccur := false
 			for _, service := range services {
 				latestTagsFromDockerHub, err := u.dockerHubClient.listImageTags(service.Image)
 				if err != nil {
 					addErrorToReport(report, app, "Failed to get latest tags from Docker Hub for service "+service.Name, err)
-					continue
+					didErrorOccur = true
+					break
 				}
 				newTag, wasNewerTagFound, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
 				if err != nil {
 					addErrorToReport(report, app, "Failed to filter latest image tag for service "+service.Name, err)
-					continue
+					didErrorOccur = true
+					break
 				}
 				if wasNewerTagFound {
 					err = u.fileSystemOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
 					if err != nil {
 						addErrorToReport(report, app, "Failed to write new tag to docker-compose for service "+service.Name, err)
-						continue
+						didErrorOccur = true
+						break
 					}
 				} else {
 					logger.Info("No newer tag found for service " + service.Name + " in app " + app)
 				}
+			}
+			if didErrorOccur {
+				continue
 			}
 		}
 

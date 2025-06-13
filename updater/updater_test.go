@@ -137,7 +137,7 @@ func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to access index page")
 }
 
-func TestUpdater_PerformUpdate(t *testing.T) {
+func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	setup(t)
 	defer assertMockExpectations(t)
 
@@ -154,6 +154,29 @@ func TestUpdater_PerformUpdate(t *testing.T) {
 
 	report, err := updater.PerformUpdate()
 	assertHealthyReport(t, err, report)
+}
+
+func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {
+	setup(t)
+	defer assertMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return(nil, errors.New("some error"))
+
+	performUpdateAndAssertFailedAppReport(t, updater, "Failed to get images of app")
+}
+
+func TestUpdater_PerformUpdate_ListImageTagsFails(t *testing.T) {
+	setup(t)
+	defer assertMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
+	}, nil)
+	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return(nil, errors.New("some error"))
+
+	performUpdateAndAssertFailedAppReport(t, updater, "Failed to get latest tags from Docker Hub for service sampleapp")
 }
 
 // TODO main: if not all apps are healthy in report, exit with code 1
