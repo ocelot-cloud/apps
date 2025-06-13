@@ -91,7 +91,7 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 				continue
 			}
 			for _, service := range services {
-				latestTagsFromDockerHub, err := u.dockerHubClient.listImageTags(service.Name)
+				latestTagsFromDockerHub, err := u.dockerHubClient.listImageTags(service.Image)
 				if err != nil {
 					addErrorToReport(report, app, "Failed to get latest tags from Docker Hub for service "+service.Name, err)
 					continue
@@ -107,6 +107,8 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 						addErrorToReport(report, app, "Failed to write new tag to docker-compose for service "+service.Name, err)
 						continue
 					}
+				} else {
+					logger.Info("No newer tag found for service " + service.Name + " in app " + app)
 				}
 			}
 		}

@@ -14,6 +14,7 @@ const (
 var (
 	fileSystemOperatorMock *FileSystemOperatorMock
 	endpointCheckerMock    *EndpointCheckerMock
+	dockerHubClientMock    *DockerHubClientMock
 	updater                *Updater
 )
 
@@ -28,6 +29,10 @@ func TestUpdater_PerformHealthCheck(t *testing.T) {
 	endpointCheckerMock.On("TryAccessingIndexPageOnLocalhost", "8080").Return(nil)
 
 	report, err := updater.PerformHealthCheck()
+	assertHealthyReport(t, err, report)
+}
+
+func assertHealthyReport(t *testing.T, err error, report *HealthCheckReport) {
 	assert.Nil(t, err)
 	assert.True(t, report.AllAppsHealthy)
 	assert.Equal(t, 1, len(report.AppReports))
@@ -39,16 +44,19 @@ func TestUpdater_PerformHealthCheck(t *testing.T) {
 func setup(t *testing.T) {
 	fileSystemOperatorMock = NewFileSystemOperatorMock(t)
 	endpointCheckerMock = NewEndpointCheckerMock(t)
+	dockerHubClientMock = NewDockerHubClientMock(t)
 	updater = &Updater{
 		appsDir:            mockAppsDir,
 		fileSystemOperator: fileSystemOperatorMock,
 		endpointChecker:    endpointCheckerMock,
+		dockerHubClient:    dockerHubClientMock,
 	}
 }
 
 func assertMockExpectations(t *testing.T) {
 	fileSystemOperatorMock.AssertExpectations(t)
 	endpointCheckerMock.AssertExpectations(t)
+	dockerHubClientMock.AssertExpectations(t)
 }
 
 func TestUpdater_GetAppsFails(t *testing.T) {
@@ -75,10 +83,10 @@ func TestUpdater_GetPortOfAppFails(t *testing.T) {
 
 func performHealthCheckAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedErrorMessage string) {
 	report, err := updater.PerformHealthCheck()
-	assertReport(t, err, report, expectedErrorMessage)
+	assertErrorInReport(t, err, report, expectedErrorMessage)
 }
 
-func assertReport(t *testing.T, err error, report *HealthCheckReport, expectedErrorMessage string) {
+func assertErrorInReport(t *testing.T, err error, report *HealthCheckReport, expectedErrorMessage string) {
 	assert.Nil(t, err)
 	assert.False(t, report.AllAppsHealthy)
 	assert.Equal(t, 1, len(report.AppReports))
@@ -90,7 +98,7 @@ func assertReport(t *testing.T, err error, report *HealthCheckReport, expectedEr
 
 func performUpdateAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedErrorMessage string) {
 	report, err := updater.PerformUpdate()
-	assertReport(t, err, report, expectedErrorMessage)
+	assertErrorInReport(t, err, report, expectedErrorMessage)
 }
 
 func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
@@ -129,15 +137,23 @@ func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to access index page")
 }
 
-/* TODO
 func TestUpdater_PerformUpdate(t *testing.T) {
 	setup(t)
 	defer assertMockExpectations(t)
 
-	// define mock behavior
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
+	}, nil)
+	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
+	fileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(nil)
+	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
+	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
+	fileSystemOperatorMock.On("RunInjectedDockerCompose", appDir).Return(nil)
+	endpointCheckerMock.On("TryAccessingIndexPageOnLocalhost", "8080").Return(nil)
 
-	performUpdateAndAssertFailedAppReport(t, updater, "todo")
+	report, err := updater.PerformUpdate()
+	assertHealthyReport(t, err, report)
 }
-*/
 
 // TODO main: if not all apps are healthy in report, exit with code 1
