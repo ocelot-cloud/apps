@@ -95,4 +95,29 @@ func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to inject port in docker-compose")
 }
 
+func TestUpdater_RunInjectedDockerComposeFails(t *testing.T) {
+	setup(t)
+	defer assertMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
+	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
+	fileSystemOperatorMock.On("RunInjectedDockerCompose", appDir).Return(errors.New("some error"))
+
+	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to run docker-compose")
+}
+
+func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
+	setup(t)
+	defer assertMockExpectations(t)
+
+	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
+	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
+	fileSystemOperatorMock.On("RunInjectedDockerCompose", appDir).Return(nil)
+	endpointCheckerMock.On("TryAccessingIndexPageOnLocalhost", "8080").Return(errors.New("some error"))
+
+	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to access index page")
+}
+
 // TODO main: if not all apps are healthy in report, exit with code 1

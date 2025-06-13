@@ -53,7 +53,6 @@ type AppHealthReport struct {
 func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
 	if err != nil {
-		// TODO to be covered
 		return nil, err
 	}
 
@@ -74,12 +73,12 @@ func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 		}
 		err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
 		if err != nil {
-			// TODO write to report
+			addErrorToReport(report, app, "Failed to run docker-compose", err)
 			continue
 		}
 		err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
 		if err != nil {
-			// TODO write to report
+			addErrorToReport(report, app, "Failed to access index page", err)
 			continue
 		}
 		report.AppReports = append(report.AppReports, AppHealthReport{
