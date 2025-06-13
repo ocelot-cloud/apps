@@ -27,11 +27,11 @@ func TestUpdater_PerformHealthCheck(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
-	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
-	fileSystemOperatorMock.On("RunInjectedDockerCompose", appDir).Return(nil)
-	endpointCheckerMock.On("TryAccessingIndexPageOnLocalhost", "8080").Return(nil)
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetPortOfApp(appDir).Return("8080", nil)
+	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(nil)
+	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(nil)
+	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080").Return(nil)
 
 	report, err := updater.PerformHealthCheck()
 	assertHealthyReport(t, err, report)
@@ -82,7 +82,7 @@ func TestUpdater_GetAppsFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, errors.New("some error"))
 
 	report, err := updater.PerformHealthCheck()
 	assert.Nil(t, report)
@@ -94,8 +94,8 @@ func TestUpdater_GetPortOfAppFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("", errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetPortOfApp(appDir).Return("", errors.New("some error"))
 
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to get port")
 }
@@ -124,9 +124,9 @@ func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("", nil)
-	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetPortOfApp(appDir).Return("", nil)
+	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(errors.New("some error"))
 
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to inject port in docker-compose")
 }
@@ -135,10 +135,10 @@ func TestUpdater_RunInjectedDockerComposeFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
-	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
-	fileSystemOperatorMock.On("RunInjectedDockerCompose", appDir).Return(errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetPortOfApp(appDir).Return("8080", nil)
+	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(nil)
+	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(errors.New("some error"))
 
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to run docker-compose")
 }
@@ -147,28 +147,28 @@ func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
-	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
-	fileSystemOperatorMock.On("RunInjectedDockerCompose", appDir).Return(nil)
-	endpointCheckerMock.On("TryAccessingIndexPageOnLocalhost", "8080").Return(errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetPortOfApp(appDir).Return("8080", nil)
+	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(nil)
+	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(nil)
+	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080").Return(errors.New("some error"))
 
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to access index page")
 }
 
-// TODO use EXPECT() to define the order of calls, remove the On() calls
+// TODO define the order of calls with EXPECT()
 
 func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.On("update", appDir).Return(nil)
-	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
-	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
-	fileSystemOperatorMock.On("RunInjectedDockerCompose", appDir).Return(nil)
-	endpointCheckerMock.On("TryAccessingIndexPageOnLocalhost", "8080").Return(nil)
+	singleAppUpdaterMock.EXPECT().update(appDir).Return(nil)
+	fileSystemOperatorMock.EXPECT().GetPortOfApp(appDir).Return("8080", nil)
+	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(nil)
+	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(nil)
+	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080").Return(nil)
 
 	report, err := updater.PerformUpdate()
 	assertHealthyReport(t, err, report)
@@ -178,13 +178,13 @@ func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.On("update", appDir).Return(nil)
-	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
-	fileSystemOperatorMock.On("InjectPortInDockerCompose", appDir).Return(nil)
-	fileSystemOperatorMock.On("RunInjectedDockerCompose", appDir).Return(nil)
-	endpointCheckerMock.On("TryAccessingIndexPageOnLocalhost", "8080").Return(nil)
+	singleAppUpdaterMock.EXPECT().update(appDir).Return(nil)
+	fileSystemOperatorMock.EXPECT().GetPortOfApp(appDir).Return("8080", nil)
+	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(nil)
+	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(nil)
+	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080").Return(nil)
 
 	report, err := updater.PerformUpdate()
 	assertHealthyReport(t, err, report)
@@ -194,9 +194,9 @@ func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.On("update", appDir).Return(errors.New("some error"))
+	singleAppUpdaterMock.EXPECT().update(appDir).Return(errors.New("some error"))
 	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(appDir, []byte("sample content")).Return(nil)
 
 	performUpdateAndAssertFailedAppReport(t, updater, "Failed to update app", "some error")
@@ -206,11 +206,11 @@ func TestAppUpdaterSuccess(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+	singleAppUpdateFileSystemOperatorMock.EXPECT().GetImagesOfApp(appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
-	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
-	singleAppUpdateFileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(nil)
+	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
+	singleAppUpdateFileSystemOperatorMock.EXPECT().WriteNewTagToDockerCompose(appDir, "sampleapp", "1.0.1").Return(nil)
 
 	wasAnyServiceUpdated, err := singleAppUpdaterReal.update(appDir)
 	assert.Nil(t, err)
@@ -221,7 +221,7 @@ func TestAppUpdater_GetImagesOfAppFails(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return(nil, errors.New("some error"))
+	singleAppUpdateFileSystemOperatorMock.EXPECT().GetImagesOfApp(appDir).Return(nil, errors.New("some error"))
 
 	_, err := singleAppUpdaterReal.update(appDir)
 	assert.Equal(t, "some error", err.Error())
@@ -231,10 +231,10 @@ func TestAppUpdater_ListImageTagsFails(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+	singleAppUpdateFileSystemOperatorMock.EXPECT().GetImagesOfApp(appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
-	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return(nil, errors.New("some error"))
+	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return(nil, errors.New("some error"))
 
 	_, err := singleAppUpdaterReal.update(appDir)
 	assert.Equal(t, "some error", err.Error())
@@ -244,11 +244,11 @@ func TestAppUpdater_WriteNewTagToDockerComposeFails(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+	singleAppUpdateFileSystemOperatorMock.EXPECT().GetImagesOfApp(appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
-	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
-	singleAppUpdateFileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(errors.New("some error"))
+	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
+	singleAppUpdateFileSystemOperatorMock.EXPECT().WriteNewTagToDockerCompose(appDir, "sampleapp", "1.0.1").Return(errors.New("some error"))
 
 	_, err := singleAppUpdaterReal.update(appDir)
 	assert.Equal(t, "some error", err.Error())
@@ -258,10 +258,10 @@ func TestAppUpdater_SuccessButNoNewUpdateFound(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+	singleAppUpdateFileSystemOperatorMock.EXPECT().GetImagesOfApp(appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
-	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0"}, nil)
+	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0.0"}, nil)
 
 	wasAnyServiceUpdated, err := singleAppUpdaterReal.update(appDir)
 	assert.Nil(t, err)
@@ -272,10 +272,10 @@ func TestAppUpdater_FilterLatestImageTagFails(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+	singleAppUpdateFileSystemOperatorMock.EXPECT().GetImagesOfApp(appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "invalid-tag"},
 	}, nil)
-	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
+	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
 
 	_, err := singleAppUpdaterReal.update(appDir)
 	assert.Equal(t, "integer conversion failed", err.Error())
@@ -285,7 +285,7 @@ func TestUpdater_PerformUpdate_GetDockerComposeFileContentFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return(nil, errors.New("some error"))
 
 	performUpdateAndAssertFailedAppReport(t, updater, "Failed to get docker-compose file content", "some error")
