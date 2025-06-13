@@ -12,16 +12,18 @@ const (
 )
 
 var (
+	updater              *Updater
+	singleAppUpdaterReal *SingleAppUpdaterReal
+
 	fileSystemOperatorMock *FileSystemOperatorMock
 	endpointCheckerMock    *EndpointCheckerMock
 	dockerHubClientMock    *DockerHubClientMock
 	singleAppUpdaterMock   *SingleAppUpdaterMock
-	updater                *Updater
 )
 
 func TestUpdater_PerformHealthCheck(t *testing.T) {
-	setup(t)
-	defer assertMockExpectations(t)
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
@@ -42,7 +44,7 @@ func assertHealthyReport(t *testing.T, err error, report *HealthCheckReport) {
 	assert.True(t, appReport.Healthy)
 }
 
-func setup(t *testing.T) {
+func setupUpdater(t *testing.T) {
 	fileSystemOperatorMock = NewFileSystemOperatorMock(t)
 	endpointCheckerMock = NewEndpointCheckerMock(t)
 	dockerHubClientMock = NewDockerHubClientMock(t)
@@ -51,21 +53,32 @@ func setup(t *testing.T) {
 		appsDir:            mockAppsDir,
 		fileSystemOperator: fileSystemOperatorMock,
 		endpointChecker:    endpointCheckerMock,
-		dockerHubClient:    dockerHubClientMock,
 		appUpdater:         singleAppUpdaterMock,
 	}
 }
 
-func assertMockExpectations(t *testing.T) {
+func setupSingleAppUpdater(t *testing.T) {
+	fileSystemOperatorMock = NewFileSystemOperatorMock(t)
+	dockerHubClientMock = NewDockerHubClientMock(t)
+	singleAppUpdaterReal = &SingleAppUpdaterReal{
+		fileSystemOperator: fileSystemOperatorMock,
+		dockerHubClient:    dockerHubClientMock,
+	}
+}
+
+func assertUpdaterMockExpectations(t *testing.T) {
 	fileSystemOperatorMock.AssertExpectations(t)
 	endpointCheckerMock.AssertExpectations(t)
+}
+
+func assertSingleAppUpdaterMockExpectations(t *testing.T) {
+	fileSystemOperatorMock.AssertExpectations(t)
 	dockerHubClientMock.AssertExpectations(t)
-	singleAppUpdaterMock.AssertExpectations(t)
 }
 
 func TestUpdater_GetAppsFails(t *testing.T) {
-	setup(t)
-	defer assertMockExpectations(t)
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, errors.New("some error"))
 
@@ -76,8 +89,8 @@ func TestUpdater_GetAppsFails(t *testing.T) {
 }
 
 func TestUpdater_GetPortOfAppFails(t *testing.T) {
-	setup(t)
-	defer assertMockExpectations(t)
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("", errors.New("some error"))
@@ -106,8 +119,8 @@ func performUpdateAndAssertFailedAppReport(t *testing.T, updater *Updater, expec
 }
 
 func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
-	setup(t)
-	defer assertMockExpectations(t)
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("", nil)
@@ -117,8 +130,8 @@ func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
 }
 
 func TestUpdater_RunInjectedDockerComposeFails(t *testing.T) {
-	setup(t)
-	defer assertMockExpectations(t)
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
@@ -129,8 +142,8 @@ func TestUpdater_RunInjectedDockerComposeFails(t *testing.T) {
 }
 
 func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
-	setup(t)
-	defer assertMockExpectations(t)
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.On("GetPortOfApp", appDir).Return("8080", nil)
@@ -142,8 +155,8 @@ func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
 }
 
 func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
-	setup(t)
-	defer assertMockExpectations(t)
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	singleAppUpdaterMock.On("update", appDir).Return(nil)
@@ -157,8 +170,8 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 }
 
 func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
-	setup(t)
-	defer assertMockExpectations(t)
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	singleAppUpdaterMock.On("update", appDir).Return(nil)
@@ -172,8 +185,8 @@ func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 }
 
 func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {
-	setup(t)
-	defer assertMockExpectations(t)
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
 
 	fileSystemOperatorMock.On("GetListOfApps", mockAppsDir).Return([]string{"sampleapp"}, nil)
 	singleAppUpdaterMock.On("update", appDir).Return(errors.New("some error"))
@@ -181,20 +194,17 @@ func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {
 	performUpdateAndAssertFailedAppReport(t, updater, "Failed to update app", "some error")
 }
 
-func TestAppUpdater(t *testing.T) {
-	setup(t)
-	defer assertMockExpectations(t)
-	appUpdater := &SingleAppUpdaterReal{
-		fileSystemOperator: fileSystemOperatorMock,
-		dockerHubClient:    dockerHubClientMock,
-	}
+func TestAppUpdaterSuccess(t *testing.T) {
+	setupSingleAppUpdater(t)
+	defer assertSingleAppUpdaterMockExpectations(t)
+
 	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
 	fileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(nil)
 
-	assert.Nil(t, appUpdater.update(appDir))
+	assert.Nil(t, singleAppUpdaterReal.update(appDir))
 }
 
 // TODO main: if not all apps are healthy in report, exit with code 1

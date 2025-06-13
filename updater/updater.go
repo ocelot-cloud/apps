@@ -78,7 +78,6 @@ type Updater struct {
 	appsDir            string
 	fileSystemOperator FileSystemOperator
 	endpointChecker    EndpointChecker
-	dockerHubClient    DockerHubClient
 	appUpdater         SingleAppUpdater
 }
 
