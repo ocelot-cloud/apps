@@ -40,28 +40,28 @@ func (d *dockerHubClientReal) listImageTags(image string) ([]string, error) {
 }
 
 func filterLatestImageTag(originalTag string, tagList []string) (string, bool, error) {
-	originalSlice, err := parse(originalTag)
+	originalTagNumbers, err := parse(originalTag)
 	if err != nil {
+		// TODO to be covered by tests
 		return "", false, err
 	}
 
-	var slices [][]int
+	var listOfAllTagNumbers [][]int
 	for _, tag := range tagList {
 		parsed, err := parse(tag)
 		if err != nil {
 			logger.Error("failed to parse tag '%s': %v", tag, err)
 			continue
 		}
-		slices = append(slices, parsed)
+		listOfAllTagNumbers = append(listOfAllTagNumbers, parsed)
 	}
-	slices = append(slices, originalSlice)
+	listOfAllTagNumbers = append(listOfAllTagNumbers, originalTagNumbers)
 
-	maxSlice := findMaxIntSlice(len(originalSlice), slices)
-
-	if intSlicesEqual(originalSlice, maxSlice) {
+	tagNumbersWithHighestVersion := findMaxIntSlice(len(originalTagNumbers), listOfAllTagNumbers)
+	if intSlicesEqual(originalTagNumbers, tagNumbersWithHighestVersion) {
 		return "", false, nil
 	} else {
-		return intSliceToString(maxSlice), true, nil
+		return intSliceToString(tagNumbersWithHighestVersion), true, nil
 	}
 }
 

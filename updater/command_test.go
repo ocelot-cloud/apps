@@ -40,20 +40,24 @@ func TestFilterLatestImageTag(t *testing.T) {
 		tagList          []string
 		wasNewerTagFound bool
 		newTag           string
+		errorMsg         string
 	}{
-		{"todo", "1.22", []string{"1.22"}, false, ""},
-		{"todo2", "1.22", []string{"1.21", "1.22"}, false, ""},
-		{"todo2", "1.22", []string{"latest", "1.21", "stable"}, false, ""},
-		{"todo3", "1.22", []string{"1.21", "1.23"}, true, "1.23"},
-		{"todo3", "1.22", []string{"1.21", "1.23", "1.23.2"}, true, "1.23"},
+		{"same tag", "1.22", []string{"1.22"}, false, "", ""},
+		{"same and lower tag", "1.22", []string{"1.21", "1.22"}, false, "", ""},
+		{"ignore non-numeric tags", "1.22", []string{"latest", "1.21", "stable", ""}, false, "", ""},
+		{"find simple higher tag", "1.22", []string{"1.21", "1.23"}, true, "1.23", ""},
+		{"ignore tags with different number count", "1.22", []string{"1.21", "1.23", "2", "2.23.2"}, true, "1.23", ""},
 
-		// TODO also add invalid tags (with version schema like 1.2.3, e.g. stable or latest, should be skipped)
+		{"empty original tag causes error", "", []string{"1.21", "1.23", "1.23.2"}, false, "", "integer conversion failed"},
+		{"word original tag causes error", "latest", []string{"1.21", "1.23", "1.23.2"}, false, "", "integer conversion failed"},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			newTag, wasNewerVersionFound, err := filterLatestImageTag(tc.originalTag, tc.tagList)
-			assert.Nil(t, err)
+			if tc.errorMsg != "" {
+				assert.Equal(t, tc.errorMsg, err.Error())
+			}
 			assert.Equal(t, tc.wasNewerTagFound, wasNewerVersionFound)
 			assert.Equal(t, tc.newTag, newTag)
 		})
