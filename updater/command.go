@@ -40,7 +40,7 @@ func (d *dockerHubClientReal) listImageTags(image string) ([]string, error) {
 }
 
 func filterLatestImageTag(originalTag string, tagList []string) (string, bool, error) {
-	_, err := parse(originalTag)
+	originalSlice, err := parse(originalTag)
 	if err != nil {
 		return "", false, err
 	}
@@ -54,15 +54,30 @@ func filterLatestImageTag(originalTag string, tagList []string) (string, bool, e
 		}
 		slices = append(slices, parsed)
 	}
+	slices = append(slices, originalSlice)
 
-	_, err = findMaxIntSlice(slices)
+	maxSlice, err := findMaxIntSlice(slices)
 	if err != nil {
 		return "", false, err
 	}
 
-	// TODO
+	if intSlicesEqual(originalSlice, maxSlice) {
+		return "", false, nil
+	} else {
+		return intSliceToString(maxSlice), true, nil
+	}
+}
 
-	return "", false, nil
+func intSlicesEqual(a, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func intSliceToString(slice []int) string {

@@ -44,7 +44,7 @@ func TestFilterLatestImageTag(t *testing.T) {
 		{"todo", "1.22", []string{"1.22"}, false, ""},
 		{"todo2", "1.22", []string{"1.21", "1.22"}, false, ""},
 		{"todo2", "1.22", []string{"latest", "1.21", "stable"}, false, ""},
-		// TODO {"todo3", "1.22", []string{"1.21", "1.23"}, true, "1.23"},
+		{"todo3", "1.22", []string{"1.21", "1.23"}, true, "1.23"},
 
 		// TODO also add invalid tags (with version schema like 1.2.3, e.g. stable or latest, should be skipped)
 	}
@@ -55,6 +55,29 @@ func TestFilterLatestImageTag(t *testing.T) {
 			assert.Nil(t, err)
 			assert.Equal(t, tc.wasNewerTagFound, wasNewerVersionFound)
 			assert.Equal(t, tc.newTag, newTag)
+		})
+	}
+}
+
+func TestIntSlicesEqual(t *testing.T) {
+	tests := []struct {
+		name     string
+		a, b     []int
+		expected bool
+	}{
+		{"both empty", []int{}, []int{}, true},
+		{"equal slices", []int{1, 2, 3}, []int{1, 2, 3}, true},
+		{"different lengths", []int{1, 2}, []int{1, 2, 3}, false},
+		{"different content", []int{1, 2, 3}, []int{1, 2, 4}, false},
+		{"one empty", []int{}, []int{1}, false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := intSlicesEqual(tc.a, tc.b)
+			if result != tc.expected {
+				t.Errorf("intSlicesEqual(%v, %v) = %v, expected %v", tc.a, tc.b, result, tc.expected)
+			}
 		})
 	}
 }
