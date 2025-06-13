@@ -7,8 +7,10 @@ type FileSystemOperator interface {
 	GetPortOfApp(appDir string) (string, error)
 	InjectPortInDockerCompose(appDir string) error
 	RunInjectedDockerCompose(appDir string) error
+}
 
-	// needed for updates
+//go:generate mockery
+type SingleAppUpdateFileSystemOperator interface {
 	GetImagesOfApp(appDir string) ([]Service, error)
 	WriteNewTagToDockerCompose(appDir, serviceName, newTag string) error
 }
@@ -24,12 +26,12 @@ type SingleAppUpdater interface {
 }
 
 type SingleAppUpdaterReal struct {
-	fileSystemOperator FileSystemOperator
-	dockerHubClient    DockerHubClient
+	fsOperator      SingleAppUpdateFileSystemOperator
+	dockerHubClient DockerHubClient
 }
 
 func (a *SingleAppUpdaterReal) update(appDir string) (bool, error) {
-	services, err := a.fileSystemOperator.GetImagesOfApp(appDir)
+	services, err := a.fsOperator.GetImagesOfApp(appDir)
 	if err != nil {
 		return false, err
 	}
@@ -45,7 +47,7 @@ func (a *SingleAppUpdaterReal) update(appDir string) (bool, error) {
 			return false, err
 		}
 		if wasNewerTagFound {
-			err = a.fileSystemOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
+			err = a.fsOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
 			if err != nil {
 				return false, err
 			}

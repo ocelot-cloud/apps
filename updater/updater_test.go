@@ -19,6 +19,8 @@ var (
 	endpointCheckerMock    *EndpointCheckerMock
 	dockerHubClientMock    *DockerHubClientMock
 	singleAppUpdaterMock   *SingleAppUpdaterMock
+
+	singleAppUpdateFileSystemOperatorMock *SingleAppUpdateFileSystemOperatorMock
 )
 
 func TestUpdater_PerformHealthCheck(t *testing.T) {
@@ -58,11 +60,11 @@ func setupUpdater(t *testing.T) {
 }
 
 func setupSingleAppUpdater(t *testing.T) {
-	fileSystemOperatorMock = NewFileSystemOperatorMock(t)
+	singleAppUpdateFileSystemOperatorMock = NewSingleAppUpdateFileSystemOperatorMock(t)
 	dockerHubClientMock = NewDockerHubClientMock(t)
 	singleAppUpdaterReal = &SingleAppUpdaterReal{
-		fileSystemOperator: fileSystemOperatorMock,
-		dockerHubClient:    dockerHubClientMock,
+		fsOperator:      singleAppUpdateFileSystemOperatorMock,
+		dockerHubClient: dockerHubClientMock,
 	}
 }
 
@@ -198,11 +200,11 @@ func TestAppUpdaterSuccess(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
-	fileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(nil)
+	singleAppUpdateFileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(nil)
 
 	wasAnyServiceUpdated, err := singleAppUpdaterReal.update(appDir)
 	assert.Nil(t, err)
@@ -213,7 +215,7 @@ func TestAppUpdater_GetImagesOfAppFails(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return(nil, errors.New("some error"))
+	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return(nil, errors.New("some error"))
 
 	_, err := singleAppUpdaterReal.update(appDir)
 	assert.Equal(t, "some error", err.Error())
@@ -223,7 +225,7 @@ func TestAppUpdater_ListImageTagsFails(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return(nil, errors.New("some error"))
@@ -236,11 +238,11 @@ func TestAppUpdater_WriteNewTagToDockerComposeFails(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
-	fileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(errors.New("some error"))
+	singleAppUpdateFileSystemOperatorMock.On("WriteNewTagToDockerCompose", appDir, "sampleapp", "1.0.1").Return(errors.New("some error"))
 
 	_, err := singleAppUpdaterReal.update(appDir)
 	assert.Equal(t, "some error", err.Error())
@@ -250,7 +252,7 @@ func TestAppUpdater_SuccessButNoNewUpdateFound(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0"}, nil)
@@ -264,7 +266,7 @@ func TestAppUpdater_FilterLatestImageTagFails(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
+	singleAppUpdateFileSystemOperatorMock.On("GetImagesOfApp", appDir).Return([]Service{
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "invalid-tag"},
 	}, nil)
 	dockerHubClientMock.On("listImageTags", "ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
