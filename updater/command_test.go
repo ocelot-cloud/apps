@@ -43,7 +43,8 @@ func TestFilterLatestImageTag(t *testing.T) {
 	}{
 		{"todo", "1.22", []string{"1.22"}, false, ""},
 		{"todo2", "1.22", []string{"1.21", "1.22"}, false, ""},
-		//TODO{"todo3", "1.22", []string{"1.21", "1.23"}, true, "1.23"},
+		{"todo2", "1.22", []string{"latest", "1.21", "stable"}, false, ""},
+		// TODO {"todo3", "1.22", []string{"1.21", "1.23"}, true, "1.23"},
 
 		// TODO also add invalid tags (with version schema like 1.2.3, e.g. stable or latest, should be skipped)
 	}

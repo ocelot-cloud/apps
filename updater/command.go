@@ -44,6 +44,17 @@ func filterLatestImageTag(originalTag string, tagList []string) (string, bool, e
 	if err != nil {
 		return "", false, err
 	}
+
+	var slices [][]int
+	for _, tag := range tagList {
+		parsed, err := parse(tag)
+		if err != nil {
+			logger.Error("failed to parse tag '%s': %v", tag, err)
+			continue
+		}
+		slices = append(slices, parsed)
+	}
+
 	return "", false, nil
 }
 
