@@ -60,3 +60,28 @@ func parse(tag string) ([]int, error) {
 	}
 	return ints, nil
 }
+
+func maxIntSlice(slices [][]int) ([]int, error) {
+	if len(slices) == 0 {
+		return nil, fmt.Errorf("no slices passed")
+	}
+	length := len(slices[0])
+	for i, s := range slices {
+		if len(s) != length {
+			logger.Error("slice at index %d has a length %d but it must have same length as first slice with length %d", i, len(s), length)
+			return nil, fmt.Errorf("slices must have the same length")
+		}
+	}
+	maxSlice := slices[0]
+	for _, s := range slices[1:] {
+		for i := 0; i < length; i++ {
+			if s[i] > maxSlice[i] {
+				maxSlice = s
+				break
+			} else if s[i] < maxSlice[i] {
+				break
+			}
+		}
+	}
+	return maxSlice, nil
+}

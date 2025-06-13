@@ -43,7 +43,7 @@ func TestFilterLatestImageTag(t *testing.T) {
 	}{
 		{"todo", "1.22", []string{"1.22"}, false, ""},
 		{"todo2", "1.22", []string{"1.21", "1.22"}, false, ""},
-		// TODO {"todo3", "1.22", []string{"1.21", "1.23"}, true, "1.23"},
+		//TODO{"todo3", "1.22", []string{"1.21", "1.23"}, true, "1.23"},
 
 		// TODO also add invalid tags (with version schema like 1.2.3, e.g. stable or latest, should be skipped)
 	}
@@ -80,6 +80,35 @@ func TestParse(t *testing.T) {
 				assert.Equal(t, tt.errSubstr, err.Error())
 			}
 			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestMaxIntSlice(t *testing.T) {
+	tests := []struct {
+		name         string
+		input        [][]int
+		output       []int
+		errorMessage string
+	}{
+		{"empty input", [][]int{}, nil, "no slices passed"},
+		{"slices must have same length", [][]int{{1, 2}, {1, 2, 3}}, nil, "slices must have the same length"},
+		{"single slice", [][]int{{1, 2, 3}}, []int{1, 2, 3}, ""},
+
+		{"multiple slices, max at start", [][]int{{2, 2, 3}, {1, 2, 3}}, []int{2, 2, 3}, ""},
+		{"multiple slices, max at end", [][]int{{1, 2, 3}, {1, 2, 4}}, []int{1, 2, 4}, ""},
+		{"multiple slices, max in middle", [][]int{{1, 2, 3}, {1, 3, 2}, {1, 2, 2}}, []int{1, 3, 2}, ""},
+		{"equal slices", [][]int{{1, 2, 3}, {1, 2, 3}}, []int{1, 2, 3}, ""},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := maxIntSlice(tc.input)
+			if tc.errorMessage != "" {
+				assert.NotNil(t, err)
+				assert.Equal(t, tc.errorMessage, err.Error())
+			}
+			assert.Equal(t, tc.output, got)
 		})
 	}
 }
