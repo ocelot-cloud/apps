@@ -166,3 +166,4 @@ func TestIntSliceToString(t *testing.T) {
 // TODO maybe publish this at the end as CLI tool so others can use it
 // TODO do I need and app store GUI at all, if I can simply interact with the server via CLI? Maybe even smarter, since it can automate stuff like updating, zipping, signing and uploading the app, etc.
 // TODO add mocking to cloud, app store and shared module; improve test coverage? e.g. request logic in shared module -> separate requests from processing logic
+// TODO app store: make mock that ignores the .env file in non-prod profiles
