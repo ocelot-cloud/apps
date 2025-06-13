@@ -27,6 +27,47 @@ type EndpointChecker interface {
 	TryAccessingIndexPageOnLocalhost(port string) error
 }
 
+//go:generate mockery
+type SingleAppUpdater interface {
+	update(appDir string) error
+}
+
+type SingleAppUpdaterReal struct {
+	fileSystemOperator FileSystemOperator
+	dockerHubClient    DockerHubClient
+}
+
+func (a *SingleAppUpdaterReal) update(appDir string) error {
+	services, err := a.fileSystemOperator.GetImagesOfApp(appDir)
+	if err != nil {
+		// TODO "Failed to get images of app"
+		return err
+	}
+
+	for _, service := range services {
+		latestTagsFromDockerHub, err := a.dockerHubClient.listImageTags(service.Image)
+		if err != nil {
+			// TODO "Failed to get latest tags from Docker Hub for service "+service.Name
+			return err
+		}
+		newTag, wasNewerTagFound, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
+		if err != nil {
+			// TODO "Failed to filter latest image tag for service "+service.Name
+			return err
+		}
+		if wasNewerTagFound {
+			err = a.fileSystemOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
+			if err != nil {
+				// TODO "Failed to write new tag to docker-compose for service "+service.Name
+				return err
+			}
+		} else {
+			logger.Info("No newer tag found for service " + service.Name + " in app dir: " + appDir)
+		}
+	}
+	return nil
+}
+
 type Service struct {
 	Name  string
 	Image string // TODO not sure if needed
@@ -38,6 +79,7 @@ type Updater struct {
 	fileSystemOperator FileSystemOperator
 	endpointChecker    EndpointChecker
 	dockerHubClient    DockerHubClient
+	appUpdater         SingleAppUpdater
 }
 
 type HealthCheckReport struct {
@@ -81,40 +123,10 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 	}
 	for _, app := range apps {
 		appDir := u.appsDir + "/" + app
-
 		if conductTagUpdatesBeforeHealthcheck {
-			services, err := u.fileSystemOperator.GetImagesOfApp(appDir)
+			err := u.appUpdater.update(appDir)
 			if err != nil {
-				addErrorToReport(report, app, "Failed to get images of app", err)
-				continue
-			}
-
-			didErrorOccur := false
-			for _, service := range services {
-				latestTagsFromDockerHub, err := u.dockerHubClient.listImageTags(service.Image)
-				if err != nil {
-					addErrorToReport(report, app, "Failed to get latest tags from Docker Hub for service "+service.Name, err)
-					didErrorOccur = true
-					break
-				}
-				newTag, wasNewerTagFound, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
-				if err != nil {
-					addErrorToReport(report, app, "Failed to filter latest image tag for service "+service.Name, err)
-					didErrorOccur = true
-					break
-				}
-				if wasNewerTagFound {
-					err = u.fileSystemOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
-					if err != nil {
-						addErrorToReport(report, app, "Failed to write new tag to docker-compose for service "+service.Name, err)
-						didErrorOccur = true
-						break
-					}
-				} else {
-					logger.Info("No newer tag found for service " + service.Name + " in app " + app)
-				}
-			}
-			if didErrorOccur {
+				addErrorToReport(report, app, "Failed to update app", err)
 				continue
 			}
 		}
