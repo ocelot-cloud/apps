@@ -57,19 +57,14 @@ func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 		return nil, err
 	}
 
-	report := HealthCheckReport{
+	report := &HealthCheckReport{
 		AllAppsHealthy: true,
 	}
 	for _, app := range apps {
 		appDir := u.appsDir + "/" + app
 		port, err := u.fileSystemOperator.GetPortOfApp(appDir)
 		if err != nil {
-			report.AllAppsHealthy = false
-			report.AppReports = append(report.AppReports, AppHealthReport{
-				AppName:      app,
-				Healthy:      false,
-				ErrorMessage: "Failed to get port: " + err.Error(),
-			})
+			addErrorToReport(report, app, "Failed to get port", err)
 			continue
 		}
 		err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
@@ -98,7 +93,16 @@ func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 			ErrorMessage: "",
 		})
 	}
-	return &report, nil
+	return report, nil
+}
+
+func addErrorToReport(report *HealthCheckReport, app, errorMessage string, err error) {
+	report.AllAppsHealthy = false
+	report.AppReports = append(report.AppReports, AppHealthReport{
+		AppName:      app,
+		Healthy:      false,
+		ErrorMessage: errorMessage + ": " + err.Error(),
+	})
 }
 
 // TODO update, same as above, but we update images before performing healthcheck
