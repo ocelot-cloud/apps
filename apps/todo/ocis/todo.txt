@@ -1,0 +1,1 @@
+somehow when deploying there are security issues - not sure, but it seems OIDC connection is tried to be established, but fails. Ideas for fixing: public app, create real DNS records, real certificate
