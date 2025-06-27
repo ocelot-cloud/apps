@@ -33,15 +33,15 @@ func TestUpdater_PerformHealthCheck(t *testing.T) {
 	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(nil)
 	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080").Return(nil)
 
-	report, err := updater.PerformHealthCheck()
+	report, err := updater.PerformHealthChecks()
 	assertHealthyReport(t, err, report)
 }
 
 func assertHealthyReport(t *testing.T, err error, report *HealthCheckReport) {
 	assert.Nil(t, err)
 	assert.True(t, report.AllAppsHealthy)
-	assert.Equal(t, 1, len(report.AppReports))
-	appReport := report.AppReports[0]
+	assert.Equal(t, 1, len(report.AppHealthReports))
+	appReport := report.AppHealthReports[0]
 	assert.Equal(t, "sampleapp", appReport.AppName)
 	assert.True(t, appReport.Healthy)
 }
@@ -84,7 +84,7 @@ func TestUpdater_GetAppsFails(t *testing.T) {
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, errors.New("some error"))
 
-	report, err := updater.PerformHealthCheck()
+	report, err := updater.PerformHealthChecks()
 	assert.Nil(t, report)
 	assert.NotNil(t, err)
 	assert.Equal(t, "some error", err.Error())
@@ -101,15 +101,15 @@ func TestUpdater_GetPortOfAppFails(t *testing.T) {
 }
 
 func performHealthCheckAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedErrorMessage string) {
-	report, err := updater.PerformHealthCheck()
+	report, err := updater.PerformHealthChecks()
 	assertErrorInReport(t, err, report, expectedErrorMessage, "some error")
 }
 
 func assertErrorInReport(t *testing.T, actualError error, report *HealthCheckReport, expectedHighLevelError, expectedLowLevelError string) {
 	assert.Nil(t, actualError)
 	assert.False(t, report.AllAppsHealthy)
-	assert.Equal(t, 1, len(report.AppReports))
-	appReport := report.AppReports[0]
+	assert.Equal(t, 1, len(report.AppHealthReports))
+	appReport := report.AppHealthReports[0]
 	assert.Equal(t, "sampleapp", appReport.AppName)
 	assert.False(t, appReport.Healthy)
 	assert.Equal(t, expectedHighLevelError+": "+expectedLowLevelError, appReport.ErrorMessage)
@@ -186,7 +186,7 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 
 	report, err := updater.PerformUpdate()
 	assertHealthyReport(t, err, report)
-	singleAppReport := report.AppReports[0]
+	singleAppReport := report.AppHealthReports[0]
 	assert.Equal(t, *appUpdate, *singleAppReport.AppUpdate)
 }
 
@@ -204,7 +204,7 @@ func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 
 	report, err := updater.PerformUpdate()
 	assertHealthyReport(t, err, report)
-	singleAppReport := report.AppReports[0]
+	singleAppReport := report.AppHealthReports[0]
 	assert.Equal(t, *appUpdate, *singleAppReport.AppUpdate)
 }
 
