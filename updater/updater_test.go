@@ -49,6 +49,8 @@ func setupSingleAppUpdater(t *testing.T) {
 func assertUpdaterMockExpectations(t *testing.T) {
 	fileSystemOperatorMock.AssertExpectations(t)
 	endpointCheckerMock.AssertExpectations(t)
+	dockerHubClientMock.AssertExpectations(t)
+	healthCheckerMock.AssertExpectations(t)
 }
 
 func assertSingleAppUpdaterMockExpectations(t *testing.T) {
