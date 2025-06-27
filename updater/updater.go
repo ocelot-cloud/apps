@@ -158,7 +158,7 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 		AllAppsHealthy: true,
 	}
 	for _, app := range apps {
-		appReport := u.conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck, app)
+		appReport := u.conductUpdateForSingleApp(app)
 		if !appReport.Healthy {
 			report.AllAppsHealthy = false
 		}
@@ -199,58 +199,37 @@ func (u *Updater) conductHealthcheckForSingleApp(app string) AppHealthReport {
 	}
 }
 
-func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bool, app string) AppHealthReport {
+func (u *Updater) conductUpdateForSingleApp(app string) AppHealthReport {
 	appDir := u.appsDir + "/" + app
 	appUpdate := &AppUpdate{
 		WasUpdateFound: false,
 		ServiceUpdates: []ServiceUpdate{},
 	}
 	var originalDockerComposeContent []byte
-	if conductTagUpdatesBeforeHealthcheck {
-		var err error
-		originalDockerComposeContent, err = u.fileSystemOperator.GetDockerComposeFileContent(appDir)
-		if err != nil {
-			return getAppHealthReportWithError(app, "Failed to get docker-compose file content", err)
-		}
-
-		appUpdate, err = u.appUpdater.update(appDir)
-		if err != nil {
-			u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
-			return getAppHealthReportWithError(app, "Failed to update app", err)
-		}
-
-		if !appUpdate.WasUpdateFound {
-			return AppHealthReport{
-				AppName:      app,
-				AppUpdate:    appUpdate,
-				Healthy:      true,
-				ErrorMessage: "",
-			}
-		}
-	}
-	port, err := u.fileSystemOperator.GetPortOfApp(appDir)
+	var err error
+	originalDockerComposeContent, err = u.fileSystemOperator.GetDockerComposeFileContent(appDir)
 	if err != nil {
-		return getAppHealthReportWithError(app, "Failed to get port", err)
-	}
-	err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
-	if err != nil {
-		return getAppHealthReportWithError(app, "Failed to inject port in docker-compose", err)
+		return getAppHealthReportWithError(app, "Failed to get docker-compose file content", err)
 	}
 
-	err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
+	appUpdate, err = u.appUpdater.update(appDir)
 	if err != nil {
-		return getAppHealthReportWithError(app, "Failed to run docker-compose", err)
+		u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
+		return getAppHealthReportWithError(app, "Failed to update app", err)
 	}
-	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
-	if err != nil {
-		return getAppHealthReportWithError(app, "Failed to access index page", err)
+
+	if !appUpdate.WasUpdateFound {
+		return AppHealthReport{
+			AppName:      app,
+			AppUpdate:    appUpdate,
+			Healthy:      true,
+			ErrorMessage: "",
+		}
 	}
-	return AppHealthReport{
-		AppName:      app,
-		AppUpdate:    appUpdate,
-		Healthy:      true,
-		ErrorMessage: "",
-	}
+
+	report := u.conductHealthcheckForSingleApp(app)
+	report.AppUpdate = appUpdate
+	return report
 }
 
 func (u *Updater) resetDockerComposeYamlToInitialContent(appDir string, originalDockerComposeContent []byte) {
