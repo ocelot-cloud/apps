@@ -14,7 +14,7 @@ const (
 var (
 	updater              *Updater
 	healthCheckerMock    *HealthCheckerMock
-	singleAppUpdaterReal *SingleAppUpdaterReal
+	singleAppUpdaterReal *SingleAppUpdaterImpl
 	dockerHubClientMock  *DockerHubClientMock
 	singleAppUpdaterMock *SingleAppUpdaterMock
 

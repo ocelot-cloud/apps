@@ -14,7 +14,7 @@ func assertSingleAppUpdaterMockExpectations(t *testing.T) {
 func setupSingleAppUpdater(t *testing.T) {
 	singleAppUpdateFileSystemOperatorMock = NewSingleAppUpdateFileSystemOperatorMock(t)
 	dockerHubClientMock = NewDockerHubClientMock(t)
-	singleAppUpdaterReal = &SingleAppUpdaterReal{
+	singleAppUpdaterReal = &SingleAppUpdaterImpl{
 		fsOperator:      singleAppUpdateFileSystemOperatorMock,
 		dockerHubClient: dockerHubClientMock,
 	}

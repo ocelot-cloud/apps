@@ -1,7 +1,5 @@
 TODOS
 
- * implement interfaces with real implementations and wire them together in main.go
-   * EndpointChecker
  * in real implementation, I will create a "docker-compose-injected.yml" that will be deleted at the end; make an assertion that there is no such file at the end
  * if not all apps are healthy in report, exit with code 1
  * add argument []string, if empty perform on all apps, otherwise only on specified apps

@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-type DockerHubClientReal struct{}
+type DockerHubClientImpl struct{}
 
-func (d *DockerHubClientReal) listImageTags(image string) ([]string, error) {
+func (d *DockerHubClientImpl) listImageTags(image string) ([]string, error) {
 	url := fmt.Sprintf("https://registry.hub.docker.com/v2/repositories/library/%s/tags?page_size=100", image)
 	resp, err := http.Get(url)
 	if err != nil {

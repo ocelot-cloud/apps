@@ -1,6 +1,6 @@
 package main
 
-func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
+func (a *SingleAppUpdaterImpl) update(appDir string) (*AppUpdate, error) {
 	services, err := a.fsOperator.GetImagesOfApp(appDir)
 	if err != nil {
 		return nil, err
