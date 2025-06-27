@@ -122,15 +122,11 @@ func TestUpdater_PerformUpdate_SingleAppUpdateFails(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, updateReport.WasSuccessful)
 	assert.Equal(t, 1, len(updateReport.AppUpdateReport))
-	appUpdateReport := updateReport.AppUpdateReport[0]
-	assert.False(t, appUpdateReport.WasSuccessful)
-	assert.False(t, appUpdateReport.WasUpdateAvailable)
-	assert.Nil(t, appUpdateReport.AppHealthReport)
-	assert.Nil(t, appUpdateReport.AppUpdates)
-	assert.Equal(t, "Failed to update app: some error", appUpdateReport.UpdateErrorMessage)
+	actualReport := updateReport.AppUpdateReport[0]
+	expectedReport := getEmptyReport()
+	expectedReport.UpdateErrorMessage = "Failed to update app: some error"
+	assert.Equal(t, expectedReport, actualReport)
 }
-
-// TODO test case: GetDockerComposeFileContentFails
 
 func TestUpdater_PerformUpdate_WriteDockerComposeFileContentFails(t *testing.T) {
 	setupUpdater(t)
@@ -151,5 +147,21 @@ func TestUpdater_PerformUpdate_WriteDockerComposeFileContentFails(t *testing.T) 
 	updater.PerformUpdate()
 }
 
+func TestUpdater_PerformUpdate_GetDockerComposeFileContentFails(t *testing.T) {
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return(nil, errors.New("some error"))
+
+	updateReport, err := updater.PerformUpdate()
+	assert.Nil(t, err)
+	assert.False(t, updateReport.WasSuccessful)
+	assert.Equal(t, 1, len(updateReport.AppUpdateReport))
+	actualReport := updateReport.AppUpdateReport[0]
+	expectedReport := getEmptyReport()
+	expectedReport.UpdateErrorMessage = "Failed to get docker-compose file content: some error"
+	assert.Equal(t, expectedReport, actualReport)
+}
+
 // TODO main: if not all apps are healthy in report, exit with code 1
-// TODO introduce mutation testing in every component
