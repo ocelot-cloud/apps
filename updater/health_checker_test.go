@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+// TODO case: get images fails
+
 var (
 	healthChecker          HealthChecker
 	fileSystemOperatorMock *FileSystemOperatorMock

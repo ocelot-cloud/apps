@@ -57,20 +57,6 @@ func assertSingleAppUpdaterMockExpectations(t *testing.T) {
 	dockerHubClientMock.AssertExpectations(t)
 }
 
-/*
-	func performUpdateAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedHighLevelErrorMessage, expectedLowLevelErrorMessage string) {
-		report, err := updater.PerformUpdate()
-		assertErrorInReport(t, err, report, expectedHighLevelErrorMessage, expectedLowLevelErrorMessage)
-
-}
-TODO add this above?
-
-	assert.Equal(t, 1, len(report.AppReports))
-	appUpdate := report.AppReports
-	appReport := appUpdate[0]
-	assert.Equal(t, appReport, AppHealthReport{})
-*/
-
 func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
@@ -136,8 +122,7 @@ func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 	assert.Equal(t, getNoUpdateForAppReport(), appUpdateReport)
 }
 
-/* TODO !!
-func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {
+func TestUpdater_PerformUpdate_SingleAppUpdateFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
@@ -146,9 +131,17 @@ func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {
 	singleAppUpdaterMock.EXPECT().update(appDir).Return(nil, errors.New("some error"))
 	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(appDir, []byte("sample content")).Return(nil)
 
-	performUpdateAndAssertFailedAppReport(t, updater, "Failed to update app", "some error")
+	updateReport, err := updater.PerformUpdate()
+	assert.Nil(t, err)
+	assert.False(t, updateReport.WasSuccessful)
+	assert.Equal(t, 1, len(updateReport.AppUpdateReport))
+	appUpdateReport := updateReport.AppUpdateReport[0]
+	assert.False(t, appUpdateReport.WasSuccessful)
+	assert.False(t, appUpdateReport.WasUpdateAvailable)
+	assert.Nil(t, appUpdateReport.AppHealthReport)
+	assert.Nil(t, appUpdateReport.AppUpdates)
+	assert.Equal(t, "Failed to update app: some error", appUpdateReport.UpdateErrorMessage)
 }
-*/
 
 func TestAppUpdaterSuccess(t *testing.T) {
 	setupSingleAppUpdater(t)
