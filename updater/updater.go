@@ -101,7 +101,6 @@ type HealthCheckReport struct {
 
 type AppHealthReport struct {
 	AppName      string
-	AppUpdate    *AppUpdate
 	Healthy      bool
 	ErrorMessage string
 }
@@ -130,14 +129,29 @@ type UpdateReport struct {
 }
 
 type AppUpdateReport struct {
-	AppName      string
-	AppUpdate    []AppUpdate
-	ErrorMessage string
+	WasSuccessful      bool
+	AppHealthReport    *AppHealthReport
+	AppUpdates         *AppUpdate
+	UpdateErrorMessage string
 }
 
 // TODO must return an update report
-func (u *Updater) PerformUpdate() (*HealthCheckReport, error) {
-	return u.conductLogic(true)
+func (u *Updater) PerformUpdate() (*UpdateReport, error) {
+	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
+	if err != nil {
+		return nil, err
+	}
+	report := &UpdateReport{
+		WasSuccessful: true,
+	}
+	for _, app := range apps {
+		appUpdateReport := u.conductUpdateForSingleApp(app)
+		if !appUpdateReport.WasSuccessful {
+			report.WasSuccessful = false
+		}
+		report.AppUpdateReport = append(report.AppUpdateReport, appUpdateReport)
+	}
+	return report, nil
 }
 
 func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthReport {
@@ -149,31 +163,9 @@ func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthR
 }
 
 // TODO add argument []string, if empty perform on all apps, otherwise only on specified apps
-func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*HealthCheckReport, error) {
-	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
-	if err != nil {
-		return nil, err
-	}
-	report := &HealthCheckReport{
-		AllAppsHealthy: true,
-	}
-	for _, app := range apps {
-		appReport := u.conductUpdateForSingleApp(app)
-		if !appReport.Healthy {
-			report.AllAppsHealthy = false
-		}
-		report.AppHealthReports = append(report.AppHealthReports, appReport)
-	}
-	return report, nil
-}
 
 func (u *Updater) conductHealthcheckForSingleApp(app string) AppHealthReport {
 	appDir := u.appsDir + "/" + app
-	appUpdate := &AppUpdate{
-		WasUpdateFound: false,
-		ServiceUpdates: []ServiceUpdate{},
-	}
-
 	port, err := u.fileSystemOperator.GetPortOfApp(appDir)
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to get port", err)
@@ -193,43 +185,57 @@ func (u *Updater) conductHealthcheckForSingleApp(app string) AppHealthReport {
 	}
 	return AppHealthReport{
 		AppName:      app,
-		AppUpdate:    appUpdate,
 		Healthy:      true,
 		ErrorMessage: "",
 	}
 }
 
-func (u *Updater) conductUpdateForSingleApp(app string) AppHealthReport {
+func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	appDir := u.appsDir + "/" + app
 	appUpdate := &AppUpdate{
 		WasUpdateFound: false,
 		ServiceUpdates: []ServiceUpdate{},
 	}
+
 	var originalDockerComposeContent []byte
 	var err error
 	originalDockerComposeContent, err = u.fileSystemOperator.GetDockerComposeFileContent(appDir)
 	if err != nil {
-		return getAppHealthReportWithError(app, "Failed to get docker-compose file content", err)
+		return AppUpdateReport{
+			WasSuccessful:      false,
+			AppHealthReport:    nil,
+			AppUpdates:         nil,
+			UpdateErrorMessage: "Failed to get docker-compose file content: + " + err.Error(),
+		}
 	}
 
 	appUpdate, err = u.appUpdater.update(appDir)
 	if err != nil {
 		u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
-		return getAppHealthReportWithError(app, "Failed to update app", err)
-	}
-
-	if !appUpdate.WasUpdateFound {
-		return AppHealthReport{
-			AppName:      app,
-			AppUpdate:    appUpdate,
-			Healthy:      true,
-			ErrorMessage: "",
+		return AppUpdateReport{
+			WasSuccessful:      false,
+			AppHealthReport:    nil,
+			AppUpdates:         nil,
+			UpdateErrorMessage: "Failed to update app: " + err.Error(),
 		}
 	}
 
-	report := u.conductHealthcheckForSingleApp(app)
-	report.AppUpdate = appUpdate
-	return report
+	if !appUpdate.WasUpdateFound {
+		return AppUpdateReport{
+			WasSuccessful:      false,
+			AppHealthReport:    nil,
+			AppUpdates:         nil,
+			UpdateErrorMessage: "",
+		}
+	}
+
+	appHealthReport := u.conductHealthcheckForSingleApp(app)
+	return AppUpdateReport{
+		WasSuccessful:      true,
+		AppHealthReport:    &appHealthReport,
+		AppUpdates:         appUpdate,
+		UpdateErrorMessage: "",
+	}
 }
 
 func (u *Updater) resetDockerComposeYamlToInitialContent(appDir string, originalDockerComposeContent []byte) {
