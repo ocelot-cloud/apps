@@ -16,6 +16,4 @@ jobs:
 
       - name: Run CI Tests
         run: |
-          cd ci-runner
-          go build
-          ./ci-runner test
+          bash test.sh

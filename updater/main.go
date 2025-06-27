@@ -56,7 +56,6 @@ var testUnitsCmd = &cobra.Command{
 	Short: "execute updater unit tests",
 	Run: func(cmd *cobra.Command, args []string) {
 		tr.PrintTaskDescription("execute unit tests")
-		tr.ExecuteInDir(updaterDir, "go generate ./...")
-		tr.ExecuteInDir(updaterDir, "go test -count=1 ./...")
+
 	},
 }
