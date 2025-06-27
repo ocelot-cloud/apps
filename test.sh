@@ -3,6 +3,6 @@
 set -euo pipefail
 
 cd updater
-go generate
 wire
+go generate
 go test -count=1 ./...
