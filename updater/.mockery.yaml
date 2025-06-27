@@ -31,3 +31,9 @@ packages:
           filename: updater_single_app_fs_operator_mock.go
           structname: SingleAppUpdateFileSystemOperatorMock
           pkgname: main
+      HealthChecker:
+        config:
+          dir: .
+          filename: health_checker_mock.go
+          structname: HealthCheckerMock
+          pkgname: main

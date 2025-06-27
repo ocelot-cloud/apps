@@ -1,0 +1,59 @@
+package main
+
+//go:generate mockery
+type HealthChecker interface {
+	PerformHealthChecks() (*HealthCheckReport, error)
+	ConductHealthcheckForSingleApp(app string) AppHealthReport
+}
+
+func (u *HealthCheckerImpl) PerformHealthChecks() (*HealthCheckReport, error) {
+	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
+	if err != nil {
+		return nil, err
+	}
+	report := &HealthCheckReport{
+		AllAppsHealthy: true,
+	}
+	for _, app := range apps {
+		appReport := u.ConductHealthcheckForSingleApp(app)
+		if !appReport.Healthy {
+			report.AllAppsHealthy = false
+		}
+		report.AppHealthReports = append(report.AppHealthReports, appReport)
+	}
+	return report, nil
+}
+
+func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthReport {
+	return AppHealthReport{
+		AppName:      app,
+		Healthy:      false,
+		ErrorMessage: errorMessage + ": " + err.Error(),
+	}
+}
+
+func (u *HealthCheckerImpl) ConductHealthcheckForSingleApp(app string) AppHealthReport {
+	appDir := u.appsDir + "/" + app
+	port, err := u.fileSystemOperator.GetPortOfApp(appDir)
+	if err != nil {
+		return getAppHealthReportWithError(app, "Failed to get port", err)
+	}
+	err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
+	if err != nil {
+		return getAppHealthReportWithError(app, "Failed to inject port in docker-compose", err)
+	}
+
+	err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
+	if err != nil {
+		return getAppHealthReportWithError(app, "Failed to run docker-compose", err)
+	}
+	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
+	if err != nil {
+		return getAppHealthReportWithError(app, "Failed to access index page", err)
+	}
+	return AppHealthReport{
+		AppName:      app,
+		Healthy:      true,
+		ErrorMessage: "",
+	}
+}

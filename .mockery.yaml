@@ -1,9 +1,0 @@
-packages:
-  updater:
-    interfaces:
-      Runner:
-        config:
-          dir: .
-          filename: runner_mock.go
-          structname: MockRunner
-          pkgname: main

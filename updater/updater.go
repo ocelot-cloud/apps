@@ -1,32 +1,5 @@
 package main
 
-//go:generate mockery
-type FileSystemOperator interface {
-	// needed for healthchecks and updates
-	GetListOfApps(appsDir string) ([]string, error)
-	GetPortOfApp(appDir string) (string, error)
-	InjectPortInDockerCompose(appDir string) error
-	RunInjectedDockerCompose(appDir string) error
-	GetDockerComposeFileContent(appDir string) ([]byte, error)
-	WriteDockerComposeFileContent(appDir string, content []byte) error
-}
-
-//go:generate mockery
-type SingleAppUpdateFileSystemOperator interface {
-	GetImagesOfApp(appDir string) ([]Service, error)
-	WriteNewTagToDockerCompose(appDir, serviceName, newTag string) error
-}
-
-//go:generate mockery
-type EndpointChecker interface {
-	TryAccessingIndexPageOnLocalhost(port string) error
-}
-
-//go:generate mockery
-type SingleAppUpdater interface {
-	update(appDir string) (*AppUpdate, error)
-}
-
 type SingleAppUpdaterReal struct {
 	fsOperator      SingleAppUpdateFileSystemOperator
 	dockerHubClient DockerHubClient
@@ -42,6 +15,12 @@ type ServiceUpdate struct {
 	ServiceName string
 	OldTag      string
 	NewTag      string
+}
+
+type Service struct {
+	Name  string
+	Image string
+	Tag   string
 }
 
 func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
@@ -81,60 +60,6 @@ func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
 	return appUpdate, nil
 }
 
-type Service struct {
-	Name  string
-	Image string
-	Tag   string
-}
-
-type Updater struct {
-	appsDir            string
-	fileSystemOperator FileSystemOperator
-	endpointChecker    EndpointChecker
-	appUpdater         SingleAppUpdater
-}
-
-type HealthCheckReport struct {
-	AllAppsHealthy   bool
-	AppHealthReports []AppHealthReport
-}
-
-type AppHealthReport struct {
-	AppName      string
-	Healthy      bool
-	ErrorMessage string
-}
-
-func (u *Updater) PerformHealthChecks() (*HealthCheckReport, error) {
-	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
-	if err != nil {
-		return nil, err
-	}
-	report := &HealthCheckReport{
-		AllAppsHealthy: true,
-	}
-	for _, app := range apps {
-		appReport := u.conductHealthcheckForSingleApp(app)
-		if !appReport.Healthy {
-			report.AllAppsHealthy = false
-		}
-		report.AppHealthReports = append(report.AppHealthReports, appReport)
-	}
-	return report, nil
-}
-
-type UpdateReport struct {
-	WasSuccessful   bool
-	AppUpdateReport []AppUpdateReport
-}
-
-type AppUpdateReport struct {
-	WasSuccessful      bool
-	AppHealthReport    *AppHealthReport
-	AppUpdates         *AppUpdate
-	UpdateErrorMessage string
-}
-
 // TODO must return an update report
 func (u *Updater) PerformUpdate() (*UpdateReport, error) {
 	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
@@ -154,41 +79,7 @@ func (u *Updater) PerformUpdate() (*UpdateReport, error) {
 	return report, nil
 }
 
-func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthReport {
-	return AppHealthReport{
-		AppName:      app,
-		Healthy:      false,
-		ErrorMessage: errorMessage + ": " + err.Error(),
-	}
-}
-
 // TODO add argument []string, if empty perform on all apps, otherwise only on specified apps
-
-func (u *Updater) conductHealthcheckForSingleApp(app string) AppHealthReport {
-	appDir := u.appsDir + "/" + app
-	port, err := u.fileSystemOperator.GetPortOfApp(appDir)
-	if err != nil {
-		return getAppHealthReportWithError(app, "Failed to get port", err)
-	}
-	err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
-	if err != nil {
-		return getAppHealthReportWithError(app, "Failed to inject port in docker-compose", err)
-	}
-
-	err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
-	if err != nil {
-		return getAppHealthReportWithError(app, "Failed to run docker-compose", err)
-	}
-	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
-	if err != nil {
-		return getAppHealthReportWithError(app, "Failed to access index page", err)
-	}
-	return AppHealthReport{
-		AppName:      app,
-		Healthy:      true,
-		ErrorMessage: "",
-	}
-}
 
 func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	appDir := u.appsDir + "/" + app
@@ -229,7 +120,7 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 		}
 	}
 
-	appHealthReport := u.conductHealthcheckForSingleApp(app)
+	appHealthReport := u.healthChecker.ConductHealthcheckForSingleApp(app)
 	return AppUpdateReport{
 		WasSuccessful:      true,
 		AppHealthReport:    &appHealthReport,
