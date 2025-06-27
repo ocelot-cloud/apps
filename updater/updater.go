@@ -32,16 +32,8 @@ type SingleAppUpdaterReal struct {
 	dockerHubClient DockerHubClient
 }
 
-/*
-	TODO !! cases:
-
-- not updated -> no healthcheck necessary
-- updated -> healthcheck 1) successful, 2) failed
-*/
 type AppUpdate struct {
-	AppDir         string
 	WasUpdateFound bool
-	// TODO apply searchForUpdates, do healthcheck; if passed keep searchForUpdates, else revert searchForUpdates
 	ServiceUpdates []ServiceUpdate
 }
 
@@ -51,14 +43,13 @@ type ServiceUpdate struct {
 	NewTag      string
 }
 
-func (a *SingleAppUpdaterReal) searchForUpdates(appDir string) (*AppUpdate, error) {
+func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
 	services, err := a.fsOperator.GetImagesOfApp(appDir)
 	if err != nil {
 		return nil, err
 	}
 
 	var appUpdate = &AppUpdate{}
-	appUpdate.AppDir = appDir
 	var serviceUpdates []ServiceUpdate
 	for _, service := range services {
 
@@ -158,10 +149,11 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 			return getAppHealthReport(app, "Failed to get docker-compose file content", err)
 		}
 
+		// TODO update should return report, if not update was conducted, skip the rest
 		err = u.appUpdater.update(appDir)
 		if err != nil {
 			u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
-			return getAppHealthReport(app, "Failed to searchForUpdates app", err)
+			return getAppHealthReport(app, "Failed to update app", err)
 		}
 	}
 	port, err := u.fileSystemOperator.GetPortOfApp(appDir)
@@ -181,6 +173,7 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 	if err != nil {
 		return getAppHealthReport(app, "Failed to access index page", err)
 	}
+	// TODO include the AppUpdate as field here; the serviceUpdates are important for the report printing; wasUpdateFound -> "no updates found"
 	return AppHealthReport{
 		AppName:      app,
 		Healthy:      true,
