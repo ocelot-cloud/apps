@@ -35,6 +35,7 @@ type SingleAppUpdaterReal struct {
 type AppUpdate struct {
 	WasUpdateFound bool
 	ServiceUpdates []ServiceUpdate
+	ErrorMessage   string // TODO test
 }
 
 type ServiceUpdate struct {
@@ -109,17 +110,28 @@ func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 	return u.conductLogic(false)
 }
 
+type UpdateReport struct {
+	WasSuccessful   bool
+	AppUpdateReport []AppUpdateReport
+}
+
+type AppUpdateReport struct {
+	AppName      string
+	AppUpdate    []AppUpdate
+	ErrorMessage string
+}
+
+// TODO must return an update report
+func (u *Updater) PerformUpdate() (*HealthCheckReport, error) {
+	return u.conductLogic(true)
+}
+
 func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthReport {
 	return AppHealthReport{
 		AppName:      app,
-		AppUpdate:    &AppUpdate{}, // TODO not asserted yet
 		Healthy:      false,
 		ErrorMessage: errorMessage + ": " + err.Error(),
 	}
-}
-
-func (u *Updater) PerformUpdate() (*HealthCheckReport, error) {
-	return u.conductLogic(true)
 }
 
 // TODO add argument []string, if empty perform on all apps, otherwise only on specified apps
