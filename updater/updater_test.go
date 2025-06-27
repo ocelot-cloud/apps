@@ -214,6 +214,7 @@ func TestAppUpdaterSuccess(t *testing.T) {
 	appUpdate, err := singleAppUpdaterReal.searchForUpdates(appDir)
 	assert.Nil(t, err)
 	assert.True(t, appUpdate.WasUpdateFound)
+	assert.Equal(t, appDir, appUpdate.AppDir)
 	assert.Equal(t, 1, len(appUpdate.ServiceUpdates))
 	update := appUpdate.ServiceUpdates[0]
 	assert.Equal(t, "sampleapp", update.ServiceName)
@@ -255,6 +256,7 @@ func TestAppUpdater_SuccessButNoNewUpdateFound(t *testing.T) {
 
 	appUpdate, err := singleAppUpdaterReal.searchForUpdates(appDir)
 	assert.Nil(t, err)
+	assert.Equal(t, appDir, appUpdate.AppDir)
 	assert.False(t, appUpdate.WasUpdateFound)
 	assert.Equal(t, 0, len(appUpdate.ServiceUpdates))
 }
