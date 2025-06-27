@@ -1,6 +1,5 @@
 TODOS
 
- * case: GetListOfApps fails
  *add ci pipeline
  *skip when tag is same as original tag, should not be returned as new tag -> hasNewerVersion = false
  * sampleTagList := []string{"latest", "1.21", "1.22", "1.23", "v1.24", "1.25-alpine", "v1.26-alpine"}

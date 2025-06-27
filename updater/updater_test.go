@@ -163,3 +163,13 @@ func TestUpdater_PerformUpdate_GetDockerComposeFileContentFails(t *testing.T) {
 	expectedReport.UpdateErrorMessage = "Failed to get docker-compose file content: some error"
 	assert.Equal(t, expectedReport, actualReport)
 }
+
+func TestUpdater_PerformUpdate_GetListOfAppsFails(t *testing.T) {
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return(nil, errors.New("some error"))
+
+	_, err := updater.PerformUpdate()
+	assert.Equal(t, "some error", err.Error())
+}

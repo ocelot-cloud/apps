@@ -54,7 +54,7 @@ func TestUpdater_GetAppsFails(t *testing.T) {
 	setupHealthChecker(t)
 	defer assertHealthCheckerMockExpectations(t)
 
-	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return(nil, errors.New("some error"))
 
 	report, err := healthChecker.PerformHealthChecks()
 	assert.Nil(t, report)
