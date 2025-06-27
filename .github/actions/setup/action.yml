@@ -24,4 +24,6 @@ runs:
     - name: Install Mockery
       if: steps.cache-tools.outputs.cache-hit != 'true'
       shell: bash
-      run: go install github.com/vektra/mockery/v3@v3.3.5
+      run: |
+        go install github.com/vektra/mockery/v3@v3.3.5
+        go install github.com/google/wire/cmd/wire@v0.6.0
