@@ -32,35 +32,49 @@ type SingleAppUpdaterReal struct {
 	dockerHubClient DockerHubClient
 }
 
-func (a *SingleAppUpdaterReal) update(appDir string) (bool, error) {
+/*
+	TODO !! cases:
+
+- not updated -> no healthcheck necessary
+- updated -> healthcheck 1) successful, 2) failed
+*/
+type AppUpdateReport struct {
+	WasAnyAppUpdated         bool
+	WasHealthCheckSuccessful bool
+	oldTag                   string
+	newTag                   string
+}
+
+func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdateReport, error) {
 	services, err := a.fsOperator.GetImagesOfApp(appDir)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	wasAnyServiceUpdated := false
+	var report = &AppUpdateReport{}
+	report.WasAnyAppUpdated = false
 	for _, service := range services {
 		latestTagsFromDockerHub, err := a.dockerHubClient.listImageTags(service.Image)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		newTag, wasNewerTagFound, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		if wasNewerTagFound {
 			err = a.fsOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
 			if err != nil {
-				return false, err
+				return nil, err
 			}
-			wasAnyServiceUpdated = true
+			report.WasAnyAppUpdated = true
 		}
 	}
-	if wasAnyServiceUpdated {
-		return true, nil
+	if report.WasAnyAppUpdated {
+		return report, nil
 	} else {
 		logger.Info("No updates found for app at: %s", appDir)
-		return false, nil
+		return report, nil
 	}
 }
 
