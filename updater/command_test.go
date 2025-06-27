@@ -158,13 +158,3 @@ func TestIntSliceToString(t *testing.T) {
 		assert.Equal(t, tc.expected, intSliceToString(tc.input))
 	}
 }
-
-// TODO add ci pipeline
-// TODO skip when tag is same as original tag, should not be returned as new tag -> hasNewerVersion = false
-// sampleTagList := []string{"latest", "1.21", "1.22", "1.23", "v1.24", "1.25-alpine", "v1.26-alpine"}
-// TODO case: mixes tag schemas, like 1.2 and 1.2.3 -> stick to the original tag schema
-// TODO also test with custom 1) prefix and 2) suffix
-// TODO maybe publish this at the end as CLI tool so others can use it
-// TODO do I need and app store GUI at all, if I can simply interact with the server via CLI? Maybe even smarter, since it can automate stuff like updating, zipping, signing and uploading the app, etc.
-// TODO add mocking to cloud, app store and shared module; improve test coverage? e.g. request logic in shared module -> separate requests from processing logic
-// TODO app store: make mock that ignores the .env file in non-prod profiles

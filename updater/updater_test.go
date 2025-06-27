@@ -163,5 +163,3 @@ func TestUpdater_PerformUpdate_GetDockerComposeFileContentFails(t *testing.T) {
 	expectedReport.UpdateErrorMessage = "Failed to get docker-compose file content: some error"
 	assert.Equal(t, expectedReport, actualReport)
 }
-
-// TODO main: if not all apps are healthy in report, exit with code 1

@@ -23,7 +23,7 @@ type AppUpdateReport struct {
 type AppUpdate struct {
 	WasUpdateFound bool
 	ServiceUpdates []ServiceUpdate
-	ErrorMessage   string // TODO test
+	ErrorMessage   string
 }
 
 type ServiceUpdate struct {

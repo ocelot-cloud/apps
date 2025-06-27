@@ -42,7 +42,6 @@ func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
 	return appUpdate, nil
 }
 
-// TODO must return an update report
 func (u *Updater) PerformUpdate() (*UpdateReport, error) {
 	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
 	if err != nil {
@@ -60,8 +59,6 @@ func (u *Updater) PerformUpdate() (*UpdateReport, error) {
 	}
 	return report, nil
 }
-
-// TODO add argument []string, if empty perform on all apps, otherwise only on specified apps
 
 func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	appDir := u.appsDir + "/" + app
@@ -119,6 +116,3 @@ func (u *Updater) resetDockerComposeYamlToInitialContent(appDir string, original
 		panic("Failed to write docker-compose file back to original state: " + err.Error())
 	}
 }
-
-// TODO implement real file system operator and endpoint checker
-// TODO in real implementation, I will create a "docker-compose-injected.yml" that will be deleted at the end; make an assertion that there is no such file at the end
