@@ -70,12 +70,8 @@ func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdateReport, error) {
 			report.WasAnyAppUpdated = true
 		}
 	}
-	if report.WasAnyAppUpdated {
-		return report, nil
-	} else {
-		logger.Info("No updates found for app at: %s", appDir)
-		return report, nil
-	}
+
+	return report, nil
 }
 
 type Service struct {
