@@ -164,7 +164,6 @@ func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to access index page")
 }
 
-/* TODO !!
 func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
@@ -179,6 +178,7 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 		},
 	}
 
+	// TODO Make a separate HealthChecker Object
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
 	singleAppUpdaterMock.EXPECT().update(appDir).Return(appUpdate, nil)
@@ -188,12 +188,21 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080").Return(nil)
 
 	report, err := updater.PerformUpdate()
-	assertHealthyReport(t, err, report)
-	singleAppReport := report.AppHealthReports[0]
-	assert.Equal(t, *appUpdate, *singleAppReport.AppUpdate)
-
+	assert.Nil(t, err)
+	assert.True(t, report.WasSuccessful)
+	assert.Equal(t, 1, len(report.AppUpdateReport))
+	updateReport := report.AppUpdateReport[0]
+	assert.True(t, updateReport.WasSuccessful)
+	assert.Equal(t, "", updateReport.UpdateErrorMessage)
+	appUpdates := updateReport.AppUpdates
+	assert.True(t, appUpdates.WasUpdateFound)
+	assert.Equal(t, "", appUpdates.ErrorMessage)
+	assert.Equal(t, 1, len(appUpdates.ServiceUpdates))
+	serviceUpdate := appUpdates.ServiceUpdates[0]
+	assert.Equal(t, "service1", serviceUpdate.ServiceName)
+	assert.Equal(t, "1.0.0", serviceUpdate.OldTag)
+	assert.Equal(t, "1.0.1", serviceUpdate.NewTag)
 }
-*/
 
 /* TODO !!
 func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
