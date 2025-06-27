@@ -8,14 +8,9 @@ import (
 	"strings"
 )
 
-//go:generate mockery
-type DockerHubClient interface {
-	listImageTags(image string) ([]string, error)
-}
+type DockerHubClientReal struct{}
 
-type dockerHubClientReal struct{}
-
-func (d *dockerHubClientReal) listImageTags(image string) ([]string, error) {
+func (d *DockerHubClientReal) listImageTags(image string) ([]string, error) {
 	url := fmt.Sprintf("https://registry.hub.docker.com/v2/repositories/library/%s/tags?page_size=100", image)
 	resp, err := http.Get(url)
 	if err != nil {

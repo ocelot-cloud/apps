@@ -10,7 +10,7 @@ func TestDockerTagPull(t *testing.T) {
 	t.Skip()
 	return
 
-	realDockerHubClient := dockerHubClientReal{}
+	realDockerHubClient := DockerHubClientReal{}
 	tags, err := realDockerHubClient.listImageTags("nginx")
 	assert.Nil(t, err)
 	assert.Equal(t, 100, len(tags))

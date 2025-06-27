@@ -37,3 +37,8 @@ type Service struct {
 	Image string
 	Tag   string
 }
+
+type SingleAppUpdaterReal struct {
+	fsOperator      SingleAppUpdateFileSystemOperator
+	dockerHubClient DockerHubClient
+}

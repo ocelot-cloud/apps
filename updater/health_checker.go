@@ -1,11 +1,5 @@
 package main
 
-//go:generate mockery
-type HealthChecker interface {
-	PerformHealthChecks() (*HealthCheckReport, error)
-	ConductHealthcheckForSingleApp(app string) AppHealthReport
-}
-
 func (u *HealthCheckerImpl) PerformHealthChecks() (*HealthCheckReport, error) {
 	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
 	if err != nil {

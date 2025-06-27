@@ -1,10 +1,5 @@
 package main
 
-type SingleAppUpdaterReal struct {
-	fsOperator      SingleAppUpdateFileSystemOperator
-	dockerHubClient DockerHubClient
-}
-
 func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
 	services, err := a.fsOperator.GetImagesOfApp(appDir)
 	if err != nil {

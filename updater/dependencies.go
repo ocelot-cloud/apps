@@ -7,7 +7,7 @@ type FileSystemOperator interface {
 	GetPortOfApp(appDir string) (string, error)
 	InjectPortInDockerCompose(appDir string) error
 	RunInjectedDockerCompose(appDir string) error
-	
+
 	GetDockerComposeFileContent(appDir string) ([]byte, error)
 	WriteDockerComposeFileContent(appDir string, content []byte) error
 }
@@ -26,4 +26,15 @@ type EndpointChecker interface {
 //go:generate mockery
 type SingleAppUpdater interface {
 	update(appDir string) (*AppUpdate, error)
+}
+
+//go:generate mockery
+type HealthChecker interface {
+	PerformHealthChecks() (*HealthCheckReport, error)
+	ConductHealthcheckForSingleApp(app string) AppHealthReport
+}
+
+//go:generate mockery
+type DockerHubClient interface {
+	listImageTags(image string) ([]string, error)
 }
