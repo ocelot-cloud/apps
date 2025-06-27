@@ -118,6 +118,12 @@ func assertErrorInReport(t *testing.T, actualError error, report *HealthCheckRep
 func performUpdateAndAssertFailedAppReport(t *testing.T, updater *Updater, expectedHighLevelErrorMessage, expectedLowLevelErrorMessage string) {
 	report, err := updater.PerformUpdate()
 	assertErrorInReport(t, err, report, expectedHighLevelErrorMessage, expectedLowLevelErrorMessage)
+	/* TODO
+	assert.Equal(t, 1, len(report.AppReports))
+	appUpdate := report.AppReports
+	appReport := appUpdate[0]
+	assert.Equal(t, appReport, AppHealthReport{})
+	*/
 }
 
 func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
@@ -198,6 +204,8 @@ func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 
 	report, err := updater.PerformUpdate()
 	assertHealthyReport(t, err, report)
+	singleAppReport := report.AppReports[0]
+	assert.Equal(t, *appUpdate, *singleAppReport.AppUpdate)
 }
 
 func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {

@@ -152,7 +152,6 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 		var err error
 		originalDockerComposeContent, err = u.fileSystemOperator.GetDockerComposeFileContent(appDir)
 		if err != nil {
-			// TODO check appUpdate is correctly set
 			return getAppHealthReportWithError(app, "Failed to get docker-compose file content", err)
 		}
 
@@ -165,7 +164,7 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 		if !appUpdate.WasUpdateFound {
 			return AppHealthReport{
 				AppName:      app,
-				AppUpdate:    appUpdate, // TODO this line is not yet asserted
+				AppUpdate:    appUpdate,
 				Healthy:      true,
 				ErrorMessage: "",
 			}
