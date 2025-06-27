@@ -18,7 +18,6 @@ var (
 	dockerHubClientMock  *DockerHubClientMock
 	singleAppUpdaterMock *SingleAppUpdaterMock
 
-	// TODO !! what is that? do I need it?
 	singleAppUpdateFileSystemOperatorMock *SingleAppUpdateFileSystemOperatorMock
 )
 
