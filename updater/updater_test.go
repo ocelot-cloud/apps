@@ -33,7 +33,7 @@ func setupUpdater(t *testing.T) {
 		fileSystemOperator: fileSystemOperatorMock,
 		appUpdater:         singleAppUpdaterMock,
 		dockerHubClient:    dockerHubClientMock,
-		healthChecker:      healthChecker,
+		healthChecker:      healthCheckerMock,
 	}
 }
 
@@ -48,7 +48,6 @@ func setupSingleAppUpdater(t *testing.T) {
 
 func assertUpdaterMockExpectations(t *testing.T) {
 	fileSystemOperatorMock.AssertExpectations(t)
-	endpointCheckerMock.AssertExpectations(t)
 	dockerHubClientMock.AssertExpectations(t)
 	healthCheckerMock.AssertExpectations(t)
 }
@@ -72,7 +71,6 @@ TODO add this above?
 	assert.Equal(t, appReport, AppHealthReport{})
 */
 
-/* TODO !!
 func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
@@ -87,14 +85,15 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 		},
 	}
 
-	// TODO Make a separate HealthChecker Object
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
 	singleAppUpdaterMock.EXPECT().update(appDir).Return(appUpdate, nil)
-	fileSystemOperatorMock.EXPECT().GetPortOfApp(appDir).Return("8080", nil)
-	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(nil)
-	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(nil)
-	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080").Return(nil)
+	appHealthReport := AppHealthReport{
+		AppName:      "sampleapp",
+		Healthy:      true,
+		ErrorMessage: "",
+	}
+	healthCheckerMock.EXPECT().ConductHealthcheckForSingleApp("sampleapp").Return(appHealthReport)
 
 	report, err := updater.PerformUpdate()
 	assert.Nil(t, err)
@@ -112,7 +111,6 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	assert.Equal(t, "1.0.0", serviceUpdate.OldTag)
 	assert.Equal(t, "1.0.1", serviceUpdate.NewTag)
 }
-*/
 
 /* TODO !!
 func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
