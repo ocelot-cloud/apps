@@ -7,6 +7,7 @@ type FileSystemOperator interface {
 	GetPortOfApp(appDir string) (string, error)
 	InjectPortInDockerCompose(appDir string) error
 	RunInjectedDockerCompose(appDir string) error
+	
 	GetDockerComposeFileContent(appDir string) ([]byte, error)
 	WriteDockerComposeFileContent(appDir string, content []byte) error
 }

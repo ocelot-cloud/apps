@@ -74,29 +74,23 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	var err error
 	originalDockerComposeContent, err = u.fileSystemOperator.GetDockerComposeFileContent(appDir)
 	if err != nil {
-		return AppUpdateReport{
-			WasSuccessful:      false,
-			WasUpdateAvailable: false,
-			AppHealthReport:    nil,
-			AppUpdates:         nil,
-			UpdateErrorMessage: "Failed to get docker-compose file content: + " + err.Error(),
-		}
+		report := getEmptyReport()
+		report.UpdateErrorMessage = "Failed to get docker-compose file content: " + err.Error()
+		return report
 	}
 
 	appUpdate, err = u.appUpdater.update(appDir)
 	if err != nil {
 		u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
-		return AppUpdateReport{
-			WasSuccessful:      false,
-			WasUpdateAvailable: false,
-			AppHealthReport:    nil,
-			AppUpdates:         nil,
-			UpdateErrorMessage: "Failed to update app: " + err.Error(),
-		}
+		report := getEmptyReport()
+		report.UpdateErrorMessage = "Failed to update app: " + err.Error()
+		return report
 	}
 
 	if !appUpdate.WasUpdateFound {
-		return getNoUpdateForAppReport()
+		report := getEmptyReport()
+		report.WasSuccessful = true
+		return report
 	}
 
 	appHealthReport := u.healthChecker.ConductHealthcheckForSingleApp(app)
@@ -109,9 +103,9 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	}
 }
 
-func getNoUpdateForAppReport() AppUpdateReport {
+func getEmptyReport() AppUpdateReport {
 	return AppUpdateReport{
-		WasSuccessful:      true,
+		WasSuccessful:      false,
 		WasUpdateAvailable: false,
 		AppHealthReport:    nil,
 		AppUpdates:         nil,
