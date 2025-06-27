@@ -38,45 +38,61 @@ type SingleAppUpdaterReal struct {
 - not updated -> no healthcheck necessary
 - updated -> healthcheck 1) successful, 2) failed
 */
-type AppUpdateReport struct {
-	WasAnyAppUpdated         bool
-	WasHealthCheckSuccessful bool
-	oldTag                   string
-	newTag                   string
+type AppUpdate struct {
+	AppDir         string
+	WasUpdateFound bool
+	// TODO apply update, do healthcheck; if passed keep update, else revert update
+	ServiceUpdates []ServiceUpdate
 }
 
-func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdateReport, error) {
+type ServiceUpdate struct {
+	ServiceName string
+	OldTag      string
+	NewTag      string
+}
+
+func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
 	services, err := a.fsOperator.GetImagesOfApp(appDir)
 	if err != nil {
 		return nil, err
 	}
 
-	var report = &AppUpdateReport{}
-	report.WasAnyAppUpdated = false
+	var appUpdate = &AppUpdate{}
+	appUpdate.AppDir = appDir
+	var serviceUpdates []ServiceUpdate
 	for _, service := range services {
+
 		latestTagsFromDockerHub, err := a.dockerHubClient.listImageTags(service.Image)
 		if err != nil {
 			return nil, err
 		}
-		newTag, wasNewerTagFound, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
+		newTag, err := FilterLatestImageTag(service.Tag, latestTagsFromDockerHub)
 		if err != nil {
 			return nil, err
 		}
-		if wasNewerTagFound {
-			err = a.fsOperator.WriteNewTagToDockerCompose(appDir, service.Name, newTag)
-			if err != nil {
-				return nil, err
+
+		// TODO test
+		if newTag != "" {
+			newUpdate := ServiceUpdate{
+				ServiceName: service.Name,
+				OldTag:      service.Tag,
+				NewTag:      newTag,
 			}
-			report.WasAnyAppUpdated = true
+			serviceUpdates = append(serviceUpdates, newUpdate)
 		}
 	}
 
-	return report, nil
+	// TODO test
+	if len(serviceUpdates) > 0 {
+		appUpdate.WasUpdateFound = true
+	}
+
+	return appUpdate, nil
 }
 
 type Service struct {
 	Name  string
-	Image string // TODO not sure if needed
+	Image string
 	Tag   string
 }
 

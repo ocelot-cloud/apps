@@ -35,35 +35,33 @@ func TestDockerhubMock(t *testing.T) {
 
 func TestFilterLatestImageTag(t *testing.T) {
 	tests := []struct {
-		name             string
-		originalTag      string
-		tagList          []string
-		wasNewerTagFound bool
-		newTag           string
-		errorMsg         string
+		name        string
+		originalTag string
+		tagList     []string
+		newTag      string
+		errorMsg    string
 	}{
-		{"same tag", "1.22", []string{"1.22"}, false, "", ""},
-		{"same and lower tag", "1.22", []string{"1.21", "1.22"}, false, "", ""},
-		{"ignore non-numeric tags", "1.22", []string{"latest", "1.21", "stable", ""}, false, "", ""},
-		{"find simple higher tag", "1.22", []string{"1.21", "1.23"}, true, "1.23", ""},
-		{"ignore tags with different number count", "1.22", []string{"1.21", "1.23", "2", "2.23.2"}, true, "1.23", ""},
+		{"same tag", "1.22", []string{"1.22"}, "", ""},
+		{"same and lower tag", "1.22", []string{"1.21", "1.22"}, "", ""},
+		{"ignore non-numeric tags", "1.22", []string{"latest", "1.21", "stable", ""}, "", ""},
+		{"find simple higher tag", "1.22", []string{"1.21", "1.23"}, "1.23", ""},
+		{"ignore tags with different number count", "1.22", []string{"1.21", "1.23", "2", "2.23.2"}, "1.23", ""},
 
-		{"empty original tag causes error", "", []string{"1.21", "1.23", "1.23.2"}, false, "", "integer conversion failed"},
-		{"word original tag causes error", "latest", []string{"1.21", "1.23", "1.23.2"}, false, "", "integer conversion failed"},
+		{"empty original tag causes error", "", []string{"1.21", "1.23", "1.23.2"}, "", "integer conversion failed"},
+		{"word original tag causes error", "latest", []string{"1.21", "1.23", "1.23.2"}, "", "integer conversion failed"},
 
-		{"ignore different prefixes and suffixes", "1.22", []string{"1.21", "1.23", "v1.24", "1.24-alpine", "v1.24-alpine"}, true, "1.23", ""},
-		{"find newest tag with same prefix", "v1.22", []string{"1.21", "1.24", "v1.21", "v1.23"}, true, "v1.23", ""},
-		{"find newest tag with same suffix", "1.22-alpine", []string{"1.21", "1.24", "1.21-alpine", "1.23-alpine"}, true, "1.23-alpine", ""},
-		{"find newest tag with same prefix and suffix", "v1.22-alpine", []string{"1.21", "1.24", "v1.21", "v1.24", "1.21-alpine", "1.24-alpine", "v1.21-alpine", "v1.23-alpine"}, true, "v1.23-alpine", ""},
+		{"ignore different prefixes and suffixes", "1.22", []string{"1.21", "1.23", "v1.24", "1.24-alpine", "v1.24-alpine"}, "1.23", ""},
+		{"find newest tag with same prefix", "v1.22", []string{"1.21", "1.24", "v1.21", "v1.23"}, "v1.23", ""},
+		{"find newest tag with same suffix", "1.22-alpine", []string{"1.21", "1.24", "1.21-alpine", "1.23-alpine"}, "1.23-alpine", ""},
+		{"find newest tag with same prefix and suffix", "v1.22-alpine", []string{"1.21", "1.24", "v1.21", "v1.24", "1.21-alpine", "1.24-alpine", "v1.21-alpine", "v1.23-alpine"}, "v1.23-alpine", ""},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			newTag, wasNewerVersionFound, err := FilterLatestImageTag(tc.originalTag, tc.tagList)
+			newTag, err := FilterLatestImageTag(tc.originalTag, tc.tagList)
 			if tc.errorMsg != "" {
 				assert.Equal(t, tc.errorMsg, err.Error())
 			}
-			assert.Equal(t, tc.wasNewerTagFound, wasNewerVersionFound)
 			assert.Equal(t, tc.newTag, newTag)
 		})
 	}

@@ -39,25 +39,25 @@ func (d *dockerHubClientReal) listImageTags(image string) ([]string, error) {
 	return tags, nil
 }
 
-func FilterLatestImageTag(originalTag string, tagList []string) (string, bool, error) {
+func FilterLatestImageTag(originalTag string, tagList []string) (string, error) {
 	prefix, originalTag, tagList := trimPrefix(originalTag, tagList)
 	suffix, originalTag, tagList := trimSuffix(originalTag, tagList)
 
 	originalTagNumbers, err := parse(originalTag)
 	if err != nil {
-		return "", false, err
+		return "", err
 	}
 	listOfAllTagNumbers := parseTagList(tagList)
 	listOfAllTagNumbers = append(listOfAllTagNumbers, originalTagNumbers)
 
 	tagNumbersWithHighestVersion := findMaxIntSlice(len(originalTagNumbers), listOfAllTagNumbers)
 	if intSlicesEqual(originalTagNumbers, tagNumbersWithHighestVersion) {
-		return "", false, nil
+		return "", nil
 	} else {
 		newestTag := intSliceToString(tagNumbersWithHighestVersion)
 		newestTag = prefix + newestTag
 		newestTag = newestTag + suffix
-		return newestTag, true, nil
+		return newestTag, nil
 	}
 }
 

@@ -74,7 +74,7 @@ func assertUpdaterMockExpectations(t *testing.T) {
 }
 
 func assertSingleAppUpdaterMockExpectations(t *testing.T) {
-	fileSystemOperatorMock.AssertExpectations(t)
+	singleAppUpdateFileSystemOperatorMock.AssertExpectations(t)
 	dockerHubClientMock.AssertExpectations(t)
 }
 
@@ -210,11 +210,10 @@ func TestAppUpdaterSuccess(t *testing.T) {
 		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
 	}, nil)
 	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
-	singleAppUpdateFileSystemOperatorMock.EXPECT().WriteNewTagToDockerCompose(appDir, "sampleapp", "1.0.1").Return(nil)
 
-	report, err := singleAppUpdaterReal.update(appDir)
+	appUpdate, err := singleAppUpdaterReal.update(appDir)
 	assert.Nil(t, err)
-	assert.True(t, report.WasAnyAppUpdated)
+	assert.True(t, appUpdate.WasUpdateFound)
 }
 
 func TestAppUpdater_GetImagesOfAppFails(t *testing.T) {
@@ -240,20 +239,6 @@ func TestAppUpdater_ListImageTagsFails(t *testing.T) {
 	assert.Equal(t, "some error", err.Error())
 }
 
-func TestAppUpdater_WriteNewTagToDockerComposeFails(t *testing.T) {
-	setupSingleAppUpdater(t)
-	defer assertSingleAppUpdaterMockExpectations(t)
-
-	singleAppUpdateFileSystemOperatorMock.EXPECT().GetImagesOfApp(appDir).Return([]Service{
-		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0.0"},
-	}, nil)
-	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
-	singleAppUpdateFileSystemOperatorMock.EXPECT().WriteNewTagToDockerCompose(appDir, "sampleapp", "1.0.1").Return(errors.New("some error"))
-
-	_, err := singleAppUpdaterReal.update(appDir)
-	assert.Equal(t, "some error", err.Error())
-}
-
 func TestAppUpdater_SuccessButNoNewUpdateFound(t *testing.T) {
 	setupSingleAppUpdater(t)
 	defer assertSingleAppUpdaterMockExpectations(t)
@@ -263,9 +248,9 @@ func TestAppUpdater_SuccessButNoNewUpdateFound(t *testing.T) {
 	}, nil)
 	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0.0"}, nil)
 
-	report, err := singleAppUpdaterReal.update(appDir)
+	appUpdate, err := singleAppUpdaterReal.update(appDir)
 	assert.Nil(t, err)
-	assert.False(t, report.WasAnyAppUpdated)
+	assert.False(t, appUpdate.WasUpdateFound)
 }
 
 func TestAppUpdater_FilterLatestImageTagFails(t *testing.T) {
