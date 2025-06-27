@@ -88,12 +88,8 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
 	singleAppUpdaterMock.EXPECT().update(appDir).Return(appUpdate, nil)
-	appHealthReport := AppHealthReport{
-		AppName:      "sampleapp",
-		Healthy:      true,
-		ErrorMessage: "",
-	}
-	healthCheckerMock.EXPECT().ConductHealthcheckForSingleApp("sampleapp").Return(appHealthReport)
+
+	healthCheckerMock.EXPECT().ConductHealthcheckForSingleApp("sampleapp").Return(getHealthyReport())
 
 	report, err := updater.PerformUpdate()
 	assert.Nil(t, err)
@@ -101,6 +97,7 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	assert.Equal(t, 1, len(report.AppUpdateReport))
 	updateReport := report.AppUpdateReport[0]
 	assert.True(t, updateReport.WasSuccessful)
+	assert.True(t, updateReport.WasUpdateAvailable)
 	assert.Equal(t, "", updateReport.UpdateErrorMessage)
 	appUpdates := updateReport.AppUpdates
 	assert.True(t, appUpdates.WasUpdateFound)
@@ -112,7 +109,14 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	assert.Equal(t, "1.0.1", serviceUpdate.NewTag)
 }
 
-/* TODO !!
+func getHealthyReport() AppHealthReport {
+	return AppHealthReport{
+		AppName:      "sampleapp",
+		Healthy:      true,
+		ErrorMessage: "",
+	}
+}
+
 func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
@@ -126,11 +130,11 @@ func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 	singleAppUpdaterMock.EXPECT().update(appDir).Return(appUpdate, nil)
 
 	report, err := updater.PerformUpdate()
-	assertHealthyReport(t, err, report)
-	singleAppReport := report.AppHealthReports[0]
-	assert.Equal(t, *appUpdate, *singleAppReport.AppUpdate)
+	assert.Nil(t, err)
+	assert.True(t, report.WasSuccessful)
+	appUpdateReport := report.AppUpdateReport[0]
+	assert.Equal(t, getNoUpdateForAppReport(), appUpdateReport)
 }
-*/
 
 /* TODO !!
 func TestUpdater_PerformUpdate_GetImagesFails(t *testing.T) {

@@ -5,24 +5,6 @@ type SingleAppUpdaterReal struct {
 	dockerHubClient DockerHubClient
 }
 
-type AppUpdate struct {
-	WasUpdateFound bool
-	ServiceUpdates []ServiceUpdate
-	ErrorMessage   string // TODO test
-}
-
-type ServiceUpdate struct {
-	ServiceName string
-	OldTag      string
-	NewTag      string
-}
-
-type Service struct {
-	Name  string
-	Image string
-	Tag   string
-}
-
 func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
 	services, err := a.fsOperator.GetImagesOfApp(appDir)
 	if err != nil {
@@ -94,6 +76,7 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	if err != nil {
 		return AppUpdateReport{
 			WasSuccessful:      false,
+			WasUpdateAvailable: false,
 			AppHealthReport:    nil,
 			AppUpdates:         nil,
 			UpdateErrorMessage: "Failed to get docker-compose file content: + " + err.Error(),
@@ -105,6 +88,7 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 		u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
 		return AppUpdateReport{
 			WasSuccessful:      false,
+			WasUpdateAvailable: false,
 			AppHealthReport:    nil,
 			AppUpdates:         nil,
 			UpdateErrorMessage: "Failed to update app: " + err.Error(),
@@ -112,19 +96,25 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	}
 
 	if !appUpdate.WasUpdateFound {
-		return AppUpdateReport{
-			WasSuccessful:      false,
-			AppHealthReport:    nil,
-			AppUpdates:         nil,
-			UpdateErrorMessage: "",
-		}
+		return getNoUpdateForAppReport()
 	}
 
 	appHealthReport := u.healthChecker.ConductHealthcheckForSingleApp(app)
 	return AppUpdateReport{
 		WasSuccessful:      true,
+		WasUpdateAvailable: true,
 		AppHealthReport:    &appHealthReport,
 		AppUpdates:         appUpdate,
+		UpdateErrorMessage: "",
+	}
+}
+
+func getNoUpdateForAppReport() AppUpdateReport {
+	return AppUpdateReport{
+		WasSuccessful:      true,
+		WasUpdateAvailable: false,
+		AppHealthReport:    nil,
+		AppUpdates:         nil,
 		UpdateErrorMessage: "",
 	}
 }

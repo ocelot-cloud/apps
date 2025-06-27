@@ -14,7 +14,26 @@ type UpdateReport struct {
 
 type AppUpdateReport struct {
 	WasSuccessful      bool
+	WasUpdateAvailable bool
 	AppHealthReport    *AppHealthReport
 	AppUpdates         *AppUpdate
 	UpdateErrorMessage string
+}
+
+type AppUpdate struct {
+	WasUpdateFound bool
+	ServiceUpdates []ServiceUpdate
+	ErrorMessage   string // TODO test
+}
+
+type ServiceUpdate struct {
+	ServiceName string
+	OldTag      string
+	NewTag      string
+}
+
+type Service struct {
+	Name  string
+	Image string
+	Tag   string
 }
