@@ -24,7 +24,7 @@ type EndpointChecker interface {
 
 //go:generate mockery
 type SingleAppUpdater interface {
-	update(appDir string) error
+	update(appDir string) (*AppUpdate, error)
 }
 
 type SingleAppUpdaterReal struct {
@@ -100,6 +100,7 @@ type HealthCheckReport struct {
 
 type AppHealthReport struct {
 	AppName      string
+	AppUpdate    *AppUpdate
 	Healthy      bool
 	ErrorMessage string
 }
@@ -108,9 +109,10 @@ func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 	return u.conductLogic(false)
 }
 
-func getAppHealthReport(app, errorMessage string, err error) AppHealthReport {
+func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthReport {
 	return AppHealthReport{
 		AppName:      app,
+		AppUpdate:    &AppUpdate{},
 		Healthy:      false,
 		ErrorMessage: errorMessage + ": " + err.Error(),
 	}
@@ -141,41 +143,57 @@ func (u *Updater) conductLogic(conductTagUpdatesBeforeHealthcheck bool) (*Health
 
 func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bool, app string) AppHealthReport {
 	appDir := u.appsDir + "/" + app
+	appUpdate := &AppUpdate{
+		WasUpdateFound: false,
+		ServiceUpdates: []ServiceUpdate{},
+	}
 	var originalDockerComposeContent []byte
 	if conductTagUpdatesBeforeHealthcheck {
 		var err error
 		originalDockerComposeContent, err = u.fileSystemOperator.GetDockerComposeFileContent(appDir)
 		if err != nil {
-			return getAppHealthReport(app, "Failed to get docker-compose file content", err)
+			// TODO check appUpdate is correctly set
+			return getAppHealthReportWithError(app, "Failed to get docker-compose file content", err)
 		}
 
 		// TODO update should return report, if not update was conducted, skip the rest
-		err = u.appUpdater.update(appDir)
+		appUpdate, err = u.appUpdater.update(appDir)
 		if err != nil {
 			u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
-			return getAppHealthReport(app, "Failed to update app", err)
+			return getAppHealthReportWithError(app, "Failed to update app", err)
+		}
+
+		// TODO to test:
+		if !appUpdate.WasUpdateFound {
+			return AppHealthReport{
+				AppName:      app,
+				AppUpdate:    appUpdate,
+				Healthy:      true,
+				ErrorMessage: "",
+			}
 		}
 	}
 	port, err := u.fileSystemOperator.GetPortOfApp(appDir)
 	if err != nil {
-		return getAppHealthReport(app, "Failed to get port", err)
+		return getAppHealthReportWithError(app, "Failed to get port", err)
 	}
 	err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
 	if err != nil {
-		return getAppHealthReport(app, "Failed to inject port in docker-compose", err)
+		return getAppHealthReportWithError(app, "Failed to inject port in docker-compose", err)
 	}
 
 	err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
 	if err != nil {
-		return getAppHealthReport(app, "Failed to run docker-compose", err)
+		return getAppHealthReportWithError(app, "Failed to run docker-compose", err)
 	}
 	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
 	if err != nil {
-		return getAppHealthReport(app, "Failed to access index page", err)
+		return getAppHealthReportWithError(app, "Failed to access index page", err)
 	}
 	// TODO include the AppUpdate as field here; the serviceUpdates are important for the report printing; wasUpdateFound -> "no updates found"
 	return AppHealthReport{
 		AppName:      app,
+		AppUpdate:    appUpdate,
 		Healthy:      true,
 		ErrorMessage: "",
 	}
