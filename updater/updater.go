@@ -41,7 +41,7 @@ type SingleAppUpdaterReal struct {
 type AppUpdate struct {
 	AppDir         string
 	WasUpdateFound bool
-	// TODO apply update, do healthcheck; if passed keep update, else revert update
+	// TODO apply searchForUpdates, do healthcheck; if passed keep searchForUpdates, else revert searchForUpdates
 	ServiceUpdates []ServiceUpdate
 }
 
@@ -51,7 +51,7 @@ type ServiceUpdate struct {
 	NewTag      string
 }
 
-func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
+func (a *SingleAppUpdaterReal) searchForUpdates(appDir string) (*AppUpdate, error) {
 	services, err := a.fsOperator.GetImagesOfApp(appDir)
 	if err != nil {
 		return nil, err
@@ -161,7 +161,7 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 		err = u.appUpdater.update(appDir)
 		if err != nil {
 			u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
-			return getAppHealthReport(app, "Failed to update app", err)
+			return getAppHealthReport(app, "Failed to searchForUpdates app", err)
 		}
 	}
 	port, err := u.fileSystemOperator.GetPortOfApp(appDir)
