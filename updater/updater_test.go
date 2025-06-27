@@ -214,6 +214,11 @@ func TestAppUpdaterSuccess(t *testing.T) {
 	appUpdate, err := singleAppUpdaterReal.update(appDir)
 	assert.Nil(t, err)
 	assert.True(t, appUpdate.WasUpdateFound)
+	assert.Equal(t, 1, len(appUpdate.ServiceUpdates))
+	update := appUpdate.ServiceUpdates[0]
+	assert.Equal(t, "sampleapp", update.ServiceName)
+	assert.Equal(t, "1.0.0", update.OldTag)
+	assert.Equal(t, "1.0.1", update.NewTag)
 }
 
 func TestAppUpdater_GetImagesOfAppFails(t *testing.T) {
@@ -251,6 +256,7 @@ func TestAppUpdater_SuccessButNoNewUpdateFound(t *testing.T) {
 	appUpdate, err := singleAppUpdaterReal.update(appDir)
 	assert.Nil(t, err)
 	assert.False(t, appUpdate.WasUpdateFound)
+	assert.Equal(t, 0, len(appUpdate.ServiceUpdates))
 }
 
 func TestAppUpdater_FilterLatestImageTagFails(t *testing.T) {

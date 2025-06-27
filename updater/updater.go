@@ -71,7 +71,6 @@ func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
 			return nil, err
 		}
 
-		// TODO test
 		if newTag != "" {
 			newUpdate := ServiceUpdate{
 				ServiceName: service.Name,
@@ -82,8 +81,8 @@ func (a *SingleAppUpdaterReal) update(appDir string) (*AppUpdate, error) {
 		}
 	}
 
-	// TODO test
 	if len(serviceUpdates) > 0 {
+		appUpdate.ServiceUpdates = serviceUpdates
 		appUpdate.WasUpdateFound = true
 	}
 
