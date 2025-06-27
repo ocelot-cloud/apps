@@ -156,7 +156,6 @@ func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
 	performHealthCheckAndAssertFailedAppReport(t, updater, "Failed to access index page")
 }
 
-// TODO assert update was conducted
 func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
@@ -173,7 +172,7 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.EXPECT().update(appDir).Return(appUpdate, nil) // TODO first nil must be appUpdate
+	singleAppUpdaterMock.EXPECT().update(appDir).Return(appUpdate, nil)
 	fileSystemOperatorMock.EXPECT().GetPortOfApp(appDir).Return("8080", nil)
 	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(nil)
 	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(nil)
@@ -181,10 +180,8 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 
 	report, err := updater.PerformUpdate()
 	assertHealthyReport(t, err, report)
-	/* TODO
 	singleAppReport := report.AppReports[0]
 	assert.Equal(t, *appUpdate, *singleAppReport.AppUpdate)
-	*/
 }
 
 func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {

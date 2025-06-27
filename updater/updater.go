@@ -112,7 +112,7 @@ func (u *Updater) PerformHealthCheck() (*HealthCheckReport, error) {
 func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthReport {
 	return AppHealthReport{
 		AppName:      app,
-		AppUpdate:    &AppUpdate{},
+		AppUpdate:    &AppUpdate{}, // TODO not asserted yet
 		Healthy:      false,
 		ErrorMessage: errorMessage + ": " + err.Error(),
 	}
@@ -156,18 +156,16 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 			return getAppHealthReportWithError(app, "Failed to get docker-compose file content", err)
 		}
 
-		// TODO update should return report, if not update was conducted, skip the rest
 		appUpdate, err = u.appUpdater.update(appDir)
 		if err != nil {
 			u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
 			return getAppHealthReportWithError(app, "Failed to update app", err)
 		}
 
-		// TODO to test:
 		if !appUpdate.WasUpdateFound {
 			return AppHealthReport{
 				AppName:      app,
-				AppUpdate:    appUpdate,
+				AppUpdate:    appUpdate, // TODO this line is not yet asserted
 				Healthy:      true,
 				ErrorMessage: "",
 			}
@@ -190,7 +188,6 @@ func (u *Updater) conductLogicForSingleApp(conductTagUpdatesBeforeHealthcheck bo
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to access index page", err)
 	}
-	// TODO include the AppUpdate as field here; the serviceUpdates are important for the report printing; wasUpdateFound -> "no updates found"
 	return AppHealthReport{
 		AppName:      app,
 		AppUpdate:    appUpdate,
