@@ -1,10 +1,12 @@
 TODOS
 
 features:
+* it is only an update if the main service has a new version; otherwise, even if the other services have a new version, it is not an update to conduct -> add test case
 * app selection: add argument []string, if empty perform on all apps, otherwise only on specified apps
 * updates should be written into the docker-compose.yml file
   * login to store
   * the api to access the app store should be put in the "shared" module to avoid duplication. It will be used in three components: updater, cloud, store
+  * the upload needs the new zip, the app name and the version (taken from the main service in app updates)
   * when having automated updates, write that into threat model. Maybe buy a docker hub premium account in order to be able to download many images without rate limiting.
 * upload to app store, ideally automatically, check auth at the beginning, cache local token with key (rights = 600)
   * maybe upload into a test repo just for now
