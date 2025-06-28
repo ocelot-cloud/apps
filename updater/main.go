@@ -7,14 +7,17 @@ import (
 	"log"
 )
 
+var deps Deps
+
 func main() {
 	tr.HandleSignals()
 
-	rootCmd.AddCommand(testUnitsCmd)
+	rootCmd.AddCommand(healthCheckCmd, updateCmd)
 	rootCmd.CompletionOptions = cobra.CompletionOptions{DisableDefaultCmd: true}
 
 	// TODO needs be connected with cobra commands: healthcheckCmd, updateCmd
-	deps, err := Initialize()
+	var err error
+	deps, err = Initialize()
 	if err != nil {
 		log.Fatalf("failed to initialize updater: %v", err)
 	}
@@ -34,11 +37,22 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-var testUnitsCmd = &cobra.Command{
-	Use:   "test",
-	Short: "execute updater unit tests",
-	Run: func(cmd *cobra.Command, args []string) {
-		tr.PrintTaskDescription("execute unit tests")
+// TODO !! crate report functionality; maybe report -> string which can be asserted
 
+var updateCmd = &cobra.Command{
+	Use:   "update",
+	Short: "updates all apps and performs health checks",
+	Run: func(cmd *cobra.Command, args []string) {
+		tr.PrintTaskDescription("updating apps")
+		// TODO
+	},
+}
+
+var healthCheckCmd = &cobra.Command{
+	Use:   "healthcheck",
+	Short: "performs health checks",
+	Run: func(cmd *cobra.Command, args []string) {
+		tr.PrintTaskDescription("performing healthchecks")
+		// TODO
 	},
 }
