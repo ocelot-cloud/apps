@@ -1,7 +1,7 @@
 package main
 
 func (a *SingleAppUpdaterImpl) update(appDir string) (*AppUpdate, error) {
-	services, err := a.fsOperator.GetImagesOfApp(appDir)
+	services, err := a.fsOperator.GetAppServices(appDir)
 	if err != nil {
 		return nil, err
 	}
