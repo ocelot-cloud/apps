@@ -5,6 +5,7 @@ import (
 	tr "github.com/ocelot-cloud/task-runner"
 	"github.com/spf13/cobra"
 	"log"
+	"os"
 )
 
 var deps Deps
@@ -15,7 +16,6 @@ func main() {
 	rootCmd.AddCommand(healthCheckCmd, updateCmd)
 	rootCmd.CompletionOptions = cobra.CompletionOptions{DisableDefaultCmd: true}
 
-	// TODO needs be connected with cobra commands: healthcheckCmd, updateCmd
 	var err error
 	deps, err = Initialize()
 	if err != nil {
@@ -25,7 +25,6 @@ func main() {
 
 	if err := rootCmd.Execute(); err != nil {
 		tr.ColoredPrintln("error: %v", err)
-		tr.CleanupAndExitWithError()
 	}
 }
 
@@ -44,7 +43,12 @@ var updateCmd = &cobra.Command{
 	Short: "updates all apps and performs health checks",
 	Run: func(cmd *cobra.Command, args []string) {
 		tr.PrintTaskDescription("updating apps")
-		// TODO
+		updateReport, err := deps.Updater.PerformUpdate()
+		if err != nil {
+			tr.ColoredPrintln("error: %v", err)
+			os.Exit(1)
+		}
+		reportUpdate(*updateReport)
 	},
 }
 
@@ -53,6 +57,11 @@ var healthCheckCmd = &cobra.Command{
 	Short: "performs health checks",
 	Run: func(cmd *cobra.Command, args []string) {
 		tr.PrintTaskDescription("performing healthchecks")
-		// TODO
+		healthReport, err := deps.HealthChecker.PerformHealthChecks()
+		if err != nil {
+			tr.ColoredPrintln("error: %v", err)
+			os.Exit(1)
+		}
+		reportHealth(*healthReport)
 	},
 }
