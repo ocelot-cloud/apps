@@ -48,12 +48,12 @@ func newAppHealth(n string, ok bool, e string) *AppHealthReport {
 	return &AppHealthReport{AppName: n, Healthy: ok, ErrorMessage: e}
 }
 
-func newUpd(ok, avail bool, h *AppHealthReport, svc []ServiceUpdate, err string) AppUpdateReport {
+func newUpd(wasSuccessful, wasUpdateAvailable bool, appHealthReport *AppHealthReport, serviceUpdates []ServiceUpdate, err string) AppUpdateReport {
 	var up *AppUpdate
-	if avail {
-		up = &AppUpdate{WasUpdateFound: avail, ServiceUpdates: svc, ErrorMessage: err}
+	if wasUpdateAvailable {
+		up = &AppUpdate{WasUpdateFound: wasUpdateAvailable, ServiceUpdates: serviceUpdates, ErrorMessage: err}
 	}
-	return AppUpdateReport{AppName: "sample-app", WasSuccessful: ok, WasUpdateAvailable: avail, AppHealthReport: h, AppUpdates: up, UpdateErrorMessage: err}
+	return AppUpdateReport{AppName: "sample-app", WasSuccessful: wasSuccessful, WasUpdateAvailable: wasUpdateAvailable, AppHealthReport: appHealthReport, AppUpdates: up, UpdateErrorMessage: err}
 }
 
 func TestReportUpdateWorked(t *testing.T) {
@@ -68,7 +68,6 @@ func TestReportUpdateWorked(t *testing.T) {
 	assert.Equal(t, "sample-app: nginx 1.0->1.1; nginx2 2.2->2.3, Health: OK\nSummary: Update successful", out)
 }
 
-/* TODO !!
 func TestReportUpdateFail(t *testing.T) {
 	r := UpdateReport{WasSuccessful: false, AppUpdateReport: []AppUpdateReport{
 		newUpd(false, true, nil, nil, "some-update-error"),
@@ -76,7 +75,6 @@ func TestReportUpdateFail(t *testing.T) {
 	out := reportUpdate(r)
 	assert.Equal(t, "sample-app: update failed - some-update-error\nSummary: Update failed", out)
 }
-*/
 
 func TestReportUpdateNotAvailable(t *testing.T) {
 	r := UpdateReport{WasSuccessful: true, AppUpdateReport: []AppUpdateReport{
@@ -93,4 +91,17 @@ func TestReportUpdateServiceFailed(t *testing.T) {
 	}}
 	out := reportUpdate(r)
 	assert.Equal(t, "sample-app: service update error - service update failed\nSummary: Update failed", out)
+}
+
+func TestReportUpdateWithHealthcheckFailed(t *testing.T) {
+	r := UpdateReport{WasSuccessful: false, AppUpdateReport: []AppUpdateReport{
+		newUpd(true, true, &AppHealthReport{
+			AppName:      "sample-app2",
+			Healthy:      false,
+			ErrorMessage: "endpoint no available",
+		},
+			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service update failed"),
+	}}
+	out := reportUpdate(r)
+	assert.Equal(t, "sample-app: nginx 1.0->1.1, Health: endpoint no available\nSummary: Update failed", out)
 }

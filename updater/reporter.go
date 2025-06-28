@@ -27,7 +27,7 @@ func reportUpdate(updateReport UpdateReport) string {
 	for _, a := range updateReport.AppUpdateReport {
 		switch {
 		case !a.WasSuccessful:
-			if a.AppUpdates != nil && a.AppUpdates.ErrorMessage != "" {
+			if a.AppUpdates != nil && len(a.AppUpdates.ServiceUpdates) > 0 && a.AppUpdates.ErrorMessage != "" {
 				fmt.Fprintf(&b, "%s: service update error - %s\n", a.AppName, a.AppUpdates.ErrorMessage)
 			} else {
 				fmt.Fprintf(&b, "%s: update failed - %s\n", a.AppName, a.UpdateErrorMessage)
@@ -35,10 +35,6 @@ func reportUpdate(updateReport UpdateReport) string {
 		case !a.WasUpdateAvailable:
 			fmt.Fprintf(&b, "%s: no update available\n", a.AppName)
 		default:
-			if a.AppUpdates != nil && a.AppUpdates.ErrorMessage != "" {
-				fmt.Fprintf(&b, "%s: service update error - %s\n", a.AppName, a.AppUpdates.ErrorMessage)
-				break
-			}
 			parts := make([]string, 0, len(a.AppUpdates.ServiceUpdates))
 			for _, s := range a.AppUpdates.ServiceUpdates {
 				parts = append(parts, fmt.Sprintf("%s %s->%s", s.ServiceName, s.OldTag, s.NewTag))
