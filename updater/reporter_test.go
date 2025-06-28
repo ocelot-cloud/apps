@@ -1,6 +1,10 @@
 package main
 
-/* TODO
+import (
+	"github.com/ocelot-cloud/shared/assert"
+	"testing"
+)
+
 func TestReportHealthWorked(t *testing.T) {
 	report := HealthCheckReport{
 		AllAppsHealthy: true,
@@ -13,7 +17,7 @@ func TestReportHealthWorked(t *testing.T) {
 		},
 	}
 	output := reportHealth(report)
-	assert.Equal(t, "sample-app: some-error", output)
+	assert.Equal(t, "sample-app: OK\nSummary: All apps are healthy", output)
 }
 
 func TestReportHealthFailed(t *testing.T) {
@@ -28,6 +32,5 @@ func TestReportHealthFailed(t *testing.T) {
 		},
 	}
 	output := reportHealth(report)
-	assert.Equal(t, "sample-app: some-error", output)
+	assert.Equal(t, "sample-app: some-error\nSummary: Some apps are unhealthy", output)
 }
-*/
