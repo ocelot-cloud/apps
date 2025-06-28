@@ -1,5 +1,6 @@
 package main
 
+// TODO dont pass the appDir in any function. Just pass "app" and construct the appDir from the global appDir inside the methods
 func (a *SingleAppUpdaterImpl) update(appDir string) (*AppUpdate, error) {
 	services, err := a.fsOperator.GetAppServices(appDir)
 	if err != nil {
@@ -9,7 +10,6 @@ func (a *SingleAppUpdaterImpl) update(appDir string) (*AppUpdate, error) {
 	var appUpdate = &AppUpdate{}
 	var serviceUpdates []ServiceUpdate
 	for _, service := range services {
-
 		latestTagsFromDockerHub, err := a.dockerHubClient.listImageTags(service.Image)
 		if err != nil {
 			return nil, err
@@ -63,7 +63,6 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 		ServiceUpdates: []ServiceUpdate{},
 	}
 
-	// TODO !! updates change files in temp dir, so the original file is not affected. this block below can be removed, when I assure that the updated docker compose file is contained in appUpdates
 	var originalDockerComposeContent []byte
 	var err error
 	originalDockerComposeContent, err = u.fileSystemOperator.GetDockerComposeFileContent(appDir)
@@ -75,6 +74,7 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 
 	appUpdate, err = u.appUpdater.update(appDir)
 	if err != nil {
+		// TODO no need to reset the docker-compose file here, because it was never changed
 		u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
 		report := getEmptyReport()
 		report.UpdateErrorMessage = "Failed to update app: " + err.Error()
@@ -87,7 +87,21 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 		return report
 	}
 
+	// TODO !! I need to ensure at the beginning that there are no git diffs at least within the appsDir, because potential broken but up to date apps will not be healthchecked
+	// TODO !! I am still missing to write the changes to the docker-compose file
+
+	updatedDockerComposeContent, err := updateDockerComposeContent(originalDockerComposeContent, appUpdate.ServiceUpdates)
+	if err != nil {
+		// TODO To be covered
+		u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
+		report := getEmptyReport()
+		report.UpdateErrorMessage = "Failed to update docker-compose file content: " + err.Error()
+		return report
+	}
+	println(string(updatedDockerComposeContent))
+
 	appHealthReport := u.healthChecker.ConductHealthcheckForSingleApp(app)
+	// TODO if app health report is not successful, I should reset the docker-compose file to the original content
 	return AppUpdateReport{
 		WasSuccessful:      true,
 		WasUpdateAvailable: true,
@@ -95,6 +109,10 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 		AppUpdates:         appUpdate,
 		UpdateErrorMessage: "",
 	}
+}
+
+func updateDockerComposeContent(content []byte, updates []ServiceUpdate) ([]byte, error) {
+	return nil, nil
 }
 
 func getEmptyReport() AppUpdateReport {
