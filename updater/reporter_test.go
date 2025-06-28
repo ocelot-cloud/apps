@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/ocelot-cloud/shared/assert"
 	"testing"
 )
@@ -58,8 +59,19 @@ func TestReportUpdateWorked(t *testing.T) {
 				{ServiceName: "nginx2", OldTag: "2.2", NewTag: "2.3"},
 			}, ""),
 	}}
-	out := reportUpdate(r)
-	assert.Equal(t, "sample-app: nginx 1.0->1.1; nginx2 2.2->2.3, Health: OK\nSummary: Update successful\n", out)
+	actualReport := reportUpdate(r)
+	assertUpdateReport(t, "- sample-app: update worked\n  - nginx: 1.0 -> 1.1\n  - nginx2: 2.2 -> 2.3\n", actualReport, true)
+}
+
+func assertUpdateReport(t *testing.T, expectedContent, actualReport string, wasUpdateSuccessful bool) {
+	var expectedSummary string
+	if wasUpdateSuccessful {
+		expectedSummary = "Update successful"
+	} else {
+		expectedSummary = "Update failed"
+	}
+	expectedReport := fmt.Sprintf("\nUpdate Report:\n\n"+expectedContent+"\nSummary: %s\n", expectedSummary)
+	assert.Equal(t, expectedReport, actualReport)
 }
 
 func TestReportUpdateFail(t *testing.T) {
@@ -67,7 +79,7 @@ func TestReportUpdateFail(t *testing.T) {
 		newUpd(false, true, nil, nil, "some-update-error"),
 	}}
 	out := reportUpdate(r)
-	assert.Equal(t, "sample-app: update failed - some-update-error\nSummary: Update failed\n", out)
+	assertUpdateReport(t, "- sample-app: update failed - some-update-error\n", out, false)
 }
 
 func TestReportUpdateNotAvailable(t *testing.T) {
@@ -75,7 +87,7 @@ func TestReportUpdateNotAvailable(t *testing.T) {
 		newUpd(true, false, nil, nil, ""),
 	}}
 	out := reportUpdate(r)
-	assert.Equal(t, "sample-app: no update available\nSummary: Update successful\n", out)
+	assertUpdateReport(t, "- sample-app: no update available\n", out, true)
 }
 
 func TestReportUpdateServiceFailed(t *testing.T) {
@@ -84,7 +96,7 @@ func TestReportUpdateServiceFailed(t *testing.T) {
 			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service update failed"),
 	}}
 	out := reportUpdate(r)
-	assert.Equal(t, "sample-app: service update error - service update failed\nSummary: Update failed\n", out)
+	assertUpdateReport(t, "- sample-app: service update error - service update failed\n", out, false)
 }
 
 func TestReportUpdateWithHealthcheckFailed(t *testing.T) {
@@ -92,10 +104,12 @@ func TestReportUpdateWithHealthcheckFailed(t *testing.T) {
 		newUpd(true, true, &AppHealthReport{
 			AppName:      "sample-app2",
 			Healthy:      false,
-			ErrorMessage: "endpoint no available",
+			ErrorMessage: "endpoint not available",
 		},
 			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service update failed"),
 	}}
 	out := reportUpdate(r)
-	assert.Equal(t, "sample-app: nginx 1.0->1.1, Health: endpoint no available\nSummary: Update failed\n", out)
+	assertUpdateReport(t, "- sample-app: update failed - endpoint not available\n  - nginx: 1.0 -> 1.1\n", out, false)
 }
+
+// TODO make test report content more readable
