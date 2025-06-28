@@ -47,7 +47,7 @@ var rootCmd = &cobra.Command{
 }
 
 // TODO I need more logging.
-// TODO !! to be test on gitea. Seems to somehow work.
+// TODO !! to be test on gitea. Seems to somehow work. -> maybe because docker hub request works for "postgres" but not "gitea/gitea"?
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "updates all apps and performs health checks",

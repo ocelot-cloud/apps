@@ -11,7 +11,13 @@ import (
 type DockerHubClientImpl struct{}
 
 func (d *DockerHubClientImpl) listImageTags(image string) ([]string, error) {
-	url := fmt.Sprintf("https://registry.hub.docker.com/v2/repositories/library/%s/tags?page_size=100", image)
+	var repoPath string
+	if !strings.Contains(image, "/") {
+		repoPath = "library/" + image
+	} else {
+		repoPath = image
+	}
+	url := fmt.Sprintf("https://registry.hub.docker.com/v2/repositories/%s/tags?page_size=100", repoPath)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
