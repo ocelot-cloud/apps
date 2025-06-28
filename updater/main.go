@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 	"log"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -16,6 +17,14 @@ func main() {
 
 	rootCmd.AddCommand(healthCheckCmd, updateCmd)
 	rootCmd.CompletionOptions = cobra.CompletionOptions{DisableDefaultCmd: true}
+	rootCmd.PersistentFlags().StringVarP(&appsDir, "apps-directory", "d", ".", "Path to apps directory")
+	cobra.OnInitialize(func() {
+		abs, err := filepath.Abs(appsDir)
+		if err != nil {
+			logger.Fatal("failed to resolve apps directory: %v", err)
+		}
+		appsDir = abs
+	})
 
 	var err error
 	deps, err = Initialize()

@@ -9,6 +9,8 @@ s
   * when having automated updates, write that into threat model. Maybe buy a docker hub premium account in order to be able to download many images without rate limiting.
   * make tests checking whether the setup was successful, e.g. health checks on the "main service"?
 
+* idea: add a tool as an after-update-sanity-check -> "visit all git diffs and ensure on docker image tags have been changed" otherwise through error.
+
 * idea: each postgres database should have the same version. This means only a single postgres image is needed, which is then used by all apps
 * automated update via single CLI command
 * stability test, maybe add healthchecks? docker and manual ones?
