@@ -26,7 +26,6 @@ func Initialize() (Deps, error) {
 
 func NewUpdater(fs FileSystemOperator, appUpdater SingleAppUpdater, checker HealthChecker, client DockerHubClient) *Updater {
 	return &Updater{
-		appsDir:            "",
 		fileSystemOperator: fs,
 		appUpdater:         appUpdater,
 		healthChecker:      checker,
@@ -47,7 +46,6 @@ func NewSingleAppUpdater(fs SingleAppUpdateFileSystemOperator, client DockerHubC
 
 func NewHealthChecker(fs FileSystemOperator, checker EndpointChecker) HealthChecker {
 	return &HealthCheckerImpl{
-		appsDir:            "",
 		fileSystemOperator: fs,
 		endpointChecker:    checker,
 	}

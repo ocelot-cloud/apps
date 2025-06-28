@@ -7,7 +7,9 @@ import (
 	"os"
 )
 
-var deps Deps
+var (
+	deps Deps
+)
 
 func main() {
 	tr.HandleSignals()

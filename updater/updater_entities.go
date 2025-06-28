@@ -1,7 +1,6 @@
 package main
 
 type Updater struct {
-	appsDir            string
 	fileSystemOperator FileSystemOperator
 	appUpdater         SingleAppUpdater
 	healthChecker      HealthChecker

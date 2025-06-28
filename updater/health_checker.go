@@ -1,7 +1,7 @@
 package main
 
 func (u *HealthCheckerImpl) PerformHealthChecks() (*HealthCheckReport, error) {
-	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
+	apps, err := u.fileSystemOperator.GetListOfApps(appsDir)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthR
 }
 
 func (u *HealthCheckerImpl) ConductHealthcheckForSingleApp(app string) AppHealthReport {
-	appDir := u.appsDir + "/" + app
+	appDir := appsDir + "/" + app
 	port, path, err := u.fileSystemOperator.GetPortAndPathOfApp(appDir)
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to get port", err)

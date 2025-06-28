@@ -1,7 +1,6 @@
 package main
 
 type HealthCheckerImpl struct {
-	appsDir            string
 	fileSystemOperator FileSystemOperator
 	endpointChecker    EndpointChecker
 }

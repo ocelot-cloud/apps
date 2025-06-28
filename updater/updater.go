@@ -38,7 +38,7 @@ func (a *SingleAppUpdaterImpl) update(appDir string) (*AppUpdate, error) {
 }
 
 func (u *Updater) PerformUpdate() (*UpdateReport, error) {
-	apps, err := u.fileSystemOperator.GetListOfApps(u.appsDir)
+	apps, err := u.fileSystemOperator.GetListOfApps(appsDir)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (u *Updater) PerformUpdate() (*UpdateReport, error) {
 }
 
 func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
-	appDir := u.appsDir + "/" + app
+	appDir := appsDir + "/" + app
 	appUpdate := &AppUpdate{
 		WasUpdateFound: false,
 		ServiceUpdates: []ServiceUpdate{},

@@ -6,9 +6,8 @@ import (
 	"testing"
 )
 
-const (
-	mockAppsDir = "/test_apps_dir"
-	appDir      = mockAppsDir + "/sampleapp"
+var (
+	sampleAppDir = appsDir + "/sampleapp"
 )
 
 var (
@@ -28,7 +27,6 @@ func setupUpdater(t *testing.T) {
 	healthCheckerMock = NewHealthCheckerMock(t)
 
 	updater = &Updater{
-		appsDir:            mockAppsDir,
 		fileSystemOperator: fileSystemOperatorMock,
 		appUpdater:         singleAppUpdaterMock,
 		dockerHubClient:    dockerHubClientMock,
@@ -56,9 +54,9 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 		},
 	}
 
-	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.EXPECT().update(appDir).Return(appUpdate, nil)
+	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return([]byte("sample content"), nil)
+	singleAppUpdaterMock.EXPECT().update(sampleAppDir).Return(appUpdate, nil)
 
 	healthCheckerMock.EXPECT().ConductHealthcheckForSingleApp("sampleapp").Return(getHealthyReport())
 
@@ -97,9 +95,9 @@ func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 		ServiceUpdates: []ServiceUpdate{},
 	}
 
-	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.EXPECT().update(appDir).Return(appUpdate, nil)
+	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return([]byte("sample content"), nil)
+	singleAppUpdaterMock.EXPECT().update(sampleAppDir).Return(appUpdate, nil)
 
 	report, err := updater.PerformUpdate()
 	assert.Nil(t, err)
@@ -114,10 +112,10 @@ func TestUpdater_PerformUpdate_SingleAppUpdateFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.EXPECT().update(appDir).Return(nil, errors.New("some error"))
-	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(appDir, []byte("sample content")).Return(nil)
+	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return([]byte("sample content"), nil)
+	singleAppUpdaterMock.EXPECT().update(sampleAppDir).Return(nil, errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(sampleAppDir, []byte("sample content")).Return(nil)
 
 	updateReport, err := updater.PerformUpdate()
 	assert.Nil(t, err)
@@ -133,10 +131,10 @@ func TestUpdater_PerformUpdate_WriteDockerComposeFileContentFails(t *testing.T) 
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.EXPECT().update(appDir).Return(nil, errors.New("some error"))
-	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(appDir, []byte("sample content")).Return(errors.New("some other error"))
+	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return([]byte("sample content"), nil)
+	singleAppUpdaterMock.EXPECT().update(sampleAppDir).Return(nil, errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(sampleAppDir, []byte("sample content")).Return(errors.New("some other error"))
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -152,8 +150,8 @@ func TestUpdater_PerformUpdate_GetDockerComposeFileContentFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(appDir).Return(nil, errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{"sampleapp"}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return(nil, errors.New("some error"))
 
 	updateReport, err := updater.PerformUpdate()
 	assert.Nil(t, err)
@@ -169,7 +167,7 @@ func TestUpdater_PerformUpdate_GetListOfAppsFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
 
-	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return(nil, errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return(nil, errors.New("some error"))
 
 	_, err := updater.PerformUpdate()
 	assert.Equal(t, "some error", err.Error())
