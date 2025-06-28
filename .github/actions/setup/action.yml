@@ -21,6 +21,11 @@ runs:
         path: ~/.go/bin
         key: ${{ runner.os }}-go-tools-${{ hashFiles('**/go.sum') }}
 
+    - name: Set up Docker Compose
+      uses: docker/setup-compose-action@v1
+      with:
+        version: 'v2.24.6'
+
     - name: Install Mockery
       if: steps.cache-tools.outputs.cache-hit != 'true'
       shell: bash

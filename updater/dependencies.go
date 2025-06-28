@@ -2,10 +2,10 @@ package main
 
 //go:generate mockery
 type FileSystemOperator interface {
-	// needed for healthchecks and updates
 	GetListOfApps(appsDir string) ([]string, error)
 	GetPortAndPathOfApp(appDir string) (string, string, error)
-	RunDockerCompose(appDir, port string) error
+	RunDockerCompose(appDir, port string) (string, error)
+	ShutdownStackAndDeleteComposeFile(composeFilePath string) error
 
 	GetDockerComposeFileContent(appDir string) ([]byte, error)
 	WriteDockerComposeFileContent(appDir string, content []byte) error

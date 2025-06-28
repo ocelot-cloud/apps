@@ -33,10 +33,11 @@ func (u *HealthCheckerImpl) ConductHealthcheckForSingleApp(app string) AppHealth
 		return getAppHealthReportWithError(app, "Failed to get port", err)
 	}
 
-	err = u.fileSystemOperator.RunDockerCompose(appDir, port)
+	injectedComposeYamlPath, err := u.fileSystemOperator.RunDockerCompose(appDir, port)
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to run docker-compose", err)
 	}
+	defer u.fileSystemOperator.ShutdownStackAndDeleteComposeFile(injectedComposeYamlPath) // TODO ensure this is called on success
 	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port, path)
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to access index page", err)

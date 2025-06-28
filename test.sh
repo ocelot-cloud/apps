@@ -5,4 +5,9 @@ set -euo pipefail
 cd updater
 wire
 go generate
-go test -count=1 ./...
+
+echo "Running unit tests..."
+go test ./...
+
+echo "Running integration tests..."
+go test -tags=integration ./...

@@ -33,8 +33,9 @@ func TestUpdater_PerformHealthCheck(t *testing.T) {
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetPortAndPathOfApp(appDir).Return("8080", "/", nil)
-	fileSystemOperatorMock.EXPECT().RunDockerCompose(appDir, "8080").Return(nil)
+	fileSystemOperatorMock.EXPECT().RunDockerCompose(appDir, "8080").Return("/tmp/123.yml", nil)
 	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080", "/").Return(nil)
+	fileSystemOperatorMock.EXPECT().ShutdownStackAndDeleteComposeFile("/tmp/123.yml").Return(nil)
 
 	report, err := healthChecker.PerformHealthChecks()
 	assertHealthyReport(t, err, report)
@@ -92,7 +93,7 @@ func TestUpdater_RunInjectedDockerComposeFails(t *testing.T) {
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetPortAndPathOfApp(appDir).Return("8080", "/", nil)
-	fileSystemOperatorMock.EXPECT().RunDockerCompose(appDir, "8080").Return(errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().RunDockerCompose(appDir, "8080").Return("", errors.New("some error"))
 
 	performHealthCheckAndAssertFailedAppReport(t, healthChecker, "Failed to run docker-compose")
 }
@@ -103,8 +104,9 @@ func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetPortAndPathOfApp(appDir).Return("8080", "/", nil)
-	fileSystemOperatorMock.EXPECT().RunDockerCompose(appDir, "8080").Return(nil)
+	fileSystemOperatorMock.EXPECT().RunDockerCompose(appDir, "8080").Return("/tmp/123.yml", nil)
 	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080", "/").Return(errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().ShutdownStackAndDeleteComposeFile("/tmp/123.yml").Return(nil)
 
 	performHealthCheckAndAssertFailedAppReport(t, healthChecker, "Failed to access index page")
 }
