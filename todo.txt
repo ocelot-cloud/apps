@@ -1,41 +1,18 @@
 TODOS
 
- * use global appsDirs = "."
- * add argument []string, if empty perform on all apps, otherwise only on specified apps
- * make an acceptance test that runs of "updater update" on sampleapp. use a mock and assert that the app would have been updated -> should mock away the dockerHubClient so it works locally; also build two local docker images which I use for this test? So I dont have to download anything from docker hub.
-s
-* Prepare public apps feature
-  * auto update + stability test feature
+features:
+* add indentation in reports, also newlines for each updates service, dont press it in a single line
+* app selection: add argument []string, if empty perform on all apps, otherwise only on specified apps
+* updates should be written into the docker-compose.yml file
+  * the api to access the app store should be put in the "shared" module to avoid duplication. It will be used in three components: updater, cloud, store
   * when having automated updates, write that into threat model. Maybe buy a docker hub premium account in order to be able to download many images without rate limiting.
-  * make tests checking whether the setup was successful, e.g. health checks on the "main service"?
-
+* upload to app store, ideally automatically, check auth at the beginning, cache local token with key (rights = 600)
+  * maybe upload into a test repo just for now
 * idea: add a tool as an after-update-sanity-check -> "visit all git diffs and ensure on docker image tags have been changed" otherwise through error.
-
-* idea: each postgres database should have the same version. This means only a single postgres image is needed, which is then used by all apps
-* automated update via single CLI command
-* stability test, maybe add healthchecks? docker and manual ones?
-* eye to eye check? human readable summary (everything okay? if not, which app updates are not working?)
-* adaptions possible?
-* package as zips and upload; maybe have a test account in app store?
-* ensure that the current tag is replaced by a higher one than the previous one. E.g. 1.3.2 is higher that 1.2.3, even if the latter was uploaded later.
-* maybe let updates fail through a "could not be decided" code, when software is not sure whether the new tag is higher than the previous one.
-* the api to access the app store should be put in the "shared" module to avoid duplication. It will be used in three components: updater, cloud, store.
-* take care of apps/todo folder
-  * either make it a production app or remove it
-  * app package signing for official apps? then I need to safe two file in the app store: the zip and the signed checksum files
-* upload stable apps to the app store in t he end
-* add package signing?
-
 * option to ignore updates on specific service, e.g. the database
-* option to apply extra logic on versions, e.g. regexes or assertion that new version is higher than old one, but not sure about this, as this seems to be quite app specific?
-*
-
-gitea:
-  gitea/gitea: 1.23.8 -> 1.24.3
-  postgres: 17.4-alpine -> 17.6-alpine
-summary: all services healthy
 
 * add apps?
+  * take care of todo folder: either make it a production app or remove it
   * odoo for ERP
   * limesurvey for feedback
   * "discuit" for memes
@@ -43,5 +20,6 @@ summary: all services healthy
   * make a video where I set up and explain all apps that are currently official + specialities in guides
   * consider other apps from the internal list
 
-*maybe publish this at the end as CLI tool so others can use it
-*do I need and app store GUI at all, if I can simply interact with the server via CLI? Maybe even smarter, since it can automate stuff like updating, zipping, signing and uploading the app, etc.
+* store gui repalcement:
+  * maybe publish this at the end as CLI tool so others can use it
+  * do I need and app store GUI at all, if I can simply interact with the server via CLI? Maybe even smarter, since it can automate stuff like updating, zipping, signing and uploading the app, etc.
