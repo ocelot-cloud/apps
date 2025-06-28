@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	tr "github.com/ocelot-cloud/task-runner"
 	"github.com/spf13/cobra"
 	"log"
@@ -45,17 +46,21 @@ var rootCmd = &cobra.Command{
 	},
 }
 
+// TODO I need more logging.
+// TODO !! to be test on gitea. Seems to somehow work.
 var updateCmd = &cobra.Command{
 	Use:   "update",
 	Short: "updates all apps and performs health checks",
 	Run: func(cmd *cobra.Command, args []string) {
-		tr.PrintTaskDescription("updating apps")
+		logger.Info("starting update process")
 		updateReport, err := deps.Updater.PerformUpdate()
 		if err != nil {
 			tr.ColoredPrintln("error: %v", err)
 			os.Exit(1)
 		}
-		reportUpdate(*updateReport)
+		fmt.Printf("\nUpdate Report:\n")
+		output := reportUpdate(*updateReport)
+		fmt.Printf(output)
 	},
 }
 
@@ -63,12 +68,14 @@ var healthCheckCmd = &cobra.Command{
 	Use:   "healthcheck",
 	Short: "performs health checks",
 	Run: func(cmd *cobra.Command, args []string) {
-		tr.PrintTaskDescription("performing healthchecks")
+		logger.Info("starting health check process")
 		healthReport, err := deps.HealthChecker.PerformHealthChecks()
 		if err != nil {
 			tr.ColoredPrintln("error: %v", err)
 			os.Exit(1)
 		}
-		reportHealth(*healthReport)
+		fmt.Printf("\nHealth Report:\n")
+		output := reportHealth(*healthReport)
+		fmt.Printf(output)
 	},
 }

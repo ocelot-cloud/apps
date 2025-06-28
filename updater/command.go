@@ -133,7 +133,7 @@ func parse(tag string) ([]int, error) {
 	for i, p := range parts {
 		n, err := strconv.Atoi(p)
 		if err != nil {
-			logger.Info("integer conversion failed for '%s': %v", tag, err)
+			logger.Debug("integer conversion failed for '%s': %v", tag, err)
 			return nil, fmt.Errorf("integer conversion failed")
 		}
 		ints[i] = n
