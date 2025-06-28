@@ -57,7 +57,6 @@ var updateCmd = &cobra.Command{
 			tr.ColoredPrintln("error: %v", err)
 			os.Exit(1)
 		}
-		fmt.Printf("\nUpdate Report:\n")
 		output := reportUpdate(*updateReport)
 		fmt.Printf(output)
 	},
@@ -73,7 +72,6 @@ var healthCheckCmd = &cobra.Command{
 			tr.ColoredPrintln("error: %v", err)
 			os.Exit(1)
 		}
-		fmt.Printf("\nHealth Report:\n")
 		output := reportHealth(*healthReport)
 		fmt.Printf(output)
 	},

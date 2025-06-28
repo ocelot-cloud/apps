@@ -7,21 +7,23 @@ import (
 
 func reportHealth(h HealthCheckReport) string {
 	var b strings.Builder
+	fmt.Fprintf(&b, "\nHealth Check Report:\n\n")
 	for _, a := range h.AppHealthReports {
 		if a.Healthy {
-			fmt.Fprintf(&b, "%s: OK\n", a.AppName)
+			fmt.Fprintf(&b, "- %s: OK\n", a.AppName)
 		} else {
-			fmt.Fprintf(&b, "%s: %s\n", a.AppName, a.ErrorMessage)
+			fmt.Fprintf(&b, "- %s: %s\n", a.AppName, a.ErrorMessage)
 		}
 	}
 	if h.AllAppsHealthy {
-		b.WriteString("Summary: All apps are healthy\n")
+		b.WriteString("\nSummary: All apps are healthy\n")
 	} else {
-		b.WriteString("Summary: Some apps are unhealthy\n")
+		b.WriteString("\nSummary: Some apps are unhealthy\n")
 	}
 	return b.String()
 }
 
+// TODO make pretty
 func reportUpdate(updateReport UpdateReport) string {
 	var builder strings.Builder
 	for _, appUpdateReport := range updateReport.AppUpdateReport {
