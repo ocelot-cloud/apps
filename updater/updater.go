@@ -63,6 +63,7 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 		ServiceUpdates: []ServiceUpdate{},
 	}
 
+	// TODO !! updates change files in temp dir, so the original file is not affected. this block below can be removed, when I assure that the updated docker compose file is contained in appUpdates
 	var originalDockerComposeContent []byte
 	var err error
 	originalDockerComposeContent, err = u.fileSystemOperator.GetDockerComposeFileContent(appDir)
@@ -107,6 +108,7 @@ func getEmptyReport() AppUpdateReport {
 	}
 }
 
+// TODO can be inlined I guess
 func (u *Updater) resetDockerComposeYamlToInitialContent(appDir string, originalDockerComposeContent []byte) {
 	err := u.fileSystemOperator.WriteDockerComposeFileContent(appDir, originalDockerComposeContent)
 	if err != nil {
