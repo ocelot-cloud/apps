@@ -37,7 +37,7 @@ func (u *HealthCheckerImpl) ConductHealthcheckForSingleApp(app string) AppHealth
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to run docker-compose", err)
 	}
-	defer u.fileSystemOperator.ShutdownStackAndDeleteComposeFile(injectedComposeYamlPath) // TODO ensure this is called on success
+	defer u.fileSystemOperator.ShutdownStackAndDeleteComposeFile(injectedComposeYamlPath)
 	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port, path)
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to access index page", err)

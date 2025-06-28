@@ -1,16 +1,9 @@
 TODOS
 
- * in real implementation, I will create a "docker-compose-injected.yml" that will be deleted at the end; make an assertion that there is no such file at the end
- * if not all apps are healthy in report, exit with code 1
+ * use global appsDirs = "."
  * add argument []string, if empty perform on all apps, otherwise only on specified apps
  * make an acceptance test that runs of "updater update" on sampleapp. use a mock and assert that the app would have been updated -> should mock away the dockerHubClient so it works locally; also build two local docker images which I use for this test? So I dont have to download anything from docker hub.
-
-* first use case - healthcheck
-  * use app.yml to find out at which port the app shall be running
-  * inject the port in docker-compose yml and start app
-  * check if index page is available
-  * I need a minimal sample app for testing
-
+s
 * Prepare public apps feature
   * auto update + stability test feature
   * when having automated updates, write that into threat model. Maybe buy a docker hub premium account in order to be able to download many images without rate limiting.

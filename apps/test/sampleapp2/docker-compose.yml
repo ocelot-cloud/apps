@@ -1,3 +1,0 @@
-services:
-  sampleapp:
-    image: nginx:1.24-alpine
