@@ -47,6 +47,7 @@ func (u *Updater) PerformUpdate() (*UpdateReport, error) {
 	}
 	for _, app := range apps {
 		appUpdateReport := u.conductUpdateForSingleApp(app)
+		appUpdateReport.AppName = app
 		if !appUpdateReport.WasSuccessful {
 			report.WasSuccessful = false
 		}
@@ -97,6 +98,7 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 
 func getEmptyReport() AppUpdateReport {
 	return AppUpdateReport{
+		AppName:            "sampleapp",
 		WasSuccessful:      false,
 		WasUpdateAvailable: false,
 		AppHealthReport:    nil,

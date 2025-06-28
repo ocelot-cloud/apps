@@ -13,7 +13,7 @@ type UpdateReport struct {
 }
 
 type AppUpdateReport struct {
-	AppName            string // TODO assert this is set when doing an update
+	AppName            string
 	WasSuccessful      bool
 	WasUpdateAvailable bool
 	AppHealthReport    *AppHealthReport

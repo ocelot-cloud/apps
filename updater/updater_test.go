@@ -67,6 +67,7 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	assert.True(t, report.WasSuccessful)
 	assert.Equal(t, 1, len(report.AppUpdateReport))
 	updateReport := report.AppUpdateReport[0]
+	assert.Equal(t, "sampleapp", updateReport.AppName)
 	assert.True(t, updateReport.WasSuccessful)
 	assert.True(t, updateReport.WasUpdateAvailable)
 	assert.Equal(t, "", updateReport.UpdateErrorMessage)
