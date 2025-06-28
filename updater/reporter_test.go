@@ -17,7 +17,7 @@ func TestReportHealthWorked(t *testing.T) {
 		},
 	}
 	output := reportHealth(report)
-	assert.Equal(t, "sample-app: OK\nSummary: All apps are healthy\n", output)
+	assert.Equal(t, "\nHealth Check Report:\n\n- sample-app: OK\n\nSummary: All apps are healthy\n", output)
 }
 
 func TestReportHealthFailed(t *testing.T) {
@@ -32,7 +32,7 @@ func TestReportHealthFailed(t *testing.T) {
 		},
 	}
 	output := reportHealth(report)
-	assert.Equal(t, "sample-app: some-error\nSummary: Some apps are unhealthy\n", output)
+	assert.Equal(t, "\nHealth Check Report:\n\n- sample-app: some-error\n\nSummary: Some apps are unhealthy\n", output)
 }
 
 func newAppHealth(n string, ok bool, e string) *AppHealthReport {

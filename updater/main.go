@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	tr "github.com/ocelot-cloud/task-runner"
 	"github.com/spf13/cobra"
 	"log"
@@ -58,7 +57,7 @@ var updateCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		output := reportUpdate(*updateReport)
-		fmt.Printf(output)
+		print(output)
 	},
 }
 
@@ -73,6 +72,6 @@ var healthCheckCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		output := reportHealth(*healthReport)
-		fmt.Printf(output)
+		print(output)
 	},
 }
