@@ -18,7 +18,19 @@ func TestReportHealthWorked(t *testing.T) {
 		},
 	}
 	output := reportHealth(report)
-	assert.Equal(t, "\nHealth Check Report:\n\n- sample-app: OK\n\nSummary: All apps are healthy\n", output)
+	assertHealthReport(t, "- sample-app: OK\n", output, true)
+}
+
+func assertHealthReport(t *testing.T, expectedContent, actualReport string, wasHealthy bool) {
+	var expectedSummary string
+	if wasHealthy {
+		expectedSummary = "All apps are healthy"
+	} else {
+		expectedSummary = "Some apps are unhealthy"
+	}
+	expectedReport := fmt.Sprintf("\nHealth Check Report:\n\n"+expectedContent+"\nSummary: %s\n", expectedSummary)
+	assert.Equal(t, expectedReport, actualReport)
+
 }
 
 func TestReportHealthFailed(t *testing.T) {
@@ -33,7 +45,7 @@ func TestReportHealthFailed(t *testing.T) {
 		},
 	}
 	output := reportHealth(report)
-	assert.Equal(t, "\nHealth Check Report:\n\n- sample-app: some-error\n\nSummary: Some apps are unhealthy\n", output)
+	assertHealthReport(t, "- sample-app: some-error\n", output, false)
 }
 
 func newAppHealth(n string, ok bool, e string) *AppHealthReport {
