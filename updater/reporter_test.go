@@ -121,7 +121,7 @@ func TestReportUpdateServiceFailed(t *testing.T) {
 	out := reportUpdate(r)
 	expectedContent := `
 - sample-app: service update error - service update failed
-` // TODO add:   - nginx: 1.0 -> 1.1
+`
 	assertUpdateReport(t, expectedContent, out, false)
 }
 

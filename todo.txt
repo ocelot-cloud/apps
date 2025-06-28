@@ -1,7 +1,6 @@
 TODOS
 
 features:
-* add indentation in reports, also newlines for each updates service, dont press it in a single line
 * app selection: add argument []string, if empty perform on all apps, otherwise only on specified apps
 * updates should be written into the docker-compose.yml file
   * login to store
