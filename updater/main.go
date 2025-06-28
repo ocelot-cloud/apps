@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	tr "github.com/ocelot-cloud/task-runner"
 	"github.com/spf13/cobra"
 	"log"
@@ -21,7 +20,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to initialize updater: %v", err)
 	}
-	fmt.Printf("deps: %v\n", deps.Updater)
 
 	if err := rootCmd.Execute(); err != nil {
 		tr.ColoredPrintln("error: %v", err)
@@ -35,8 +33,6 @@ var rootCmd = &cobra.Command{
 		cmd.Help()
 	},
 }
-
-// TODO !! crate report functionality; maybe report -> string which can be asserted
 
 var updateCmd = &cobra.Command{
 	Use:   "update",

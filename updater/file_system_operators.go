@@ -39,7 +39,7 @@ func (s *SingleAppUpdateFileSystemOperatorImpl) GetImagesOfApp(appDir string) ([
 	panic("implement me")
 }
 
-func (s *SingleAppUpdateFileSystemOperatorImpl) WriteNewTagToDockerCompose(appDir, serviceName, newTag string) error {
+func (s *SingleAppUpdateFileSystemOperatorImpl) WriteNewTagToTheDockerCompose(appDir, serviceName, newTag string) error {
 	//TODO implement me
 	panic("implement me")
 }

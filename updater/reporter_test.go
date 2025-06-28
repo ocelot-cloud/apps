@@ -35,12 +35,6 @@ func TestReportHealthFailed(t *testing.T) {
 	assert.Equal(t, "sample-app: some-error\nSummary: Some apps are unhealthy\n", output)
 }
 
-/* TODO additional cases for reportUpdate:
-1) update was available but failed (no health report present, so skip this info), fill UpdateErrorMessage
-2) no update available (counts as success, also no healthcheck present/necessary then)
-3) update was available, but updating a specific service failed so fill ErrorMessage in ServiceUpdate (no healthcheck present); UpdateErrorMessage should be sth like "error occurred when updating a service" or so
-*/
-
 func newAppHealth(n string, ok bool, e string) *AppHealthReport {
 	if n == "" {
 		return nil

@@ -15,7 +15,7 @@ type FileSystemOperator interface {
 //go:generate mockery
 type SingleAppUpdateFileSystemOperator interface {
 	GetImagesOfApp(appDir string) ([]Service, error)
-	WriteNewTagToDockerCompose(appDir, serviceName, newTag string) error
+	WriteNewTagToTheDockerCompose(appDir, serviceName, newTag string) error
 }
 
 //go:generate mockery
