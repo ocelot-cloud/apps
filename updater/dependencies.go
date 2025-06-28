@@ -4,7 +4,7 @@ package main
 type FileSystemOperator interface {
 	// needed for healthchecks and updates
 	GetListOfApps(appsDir string) ([]string, error)
-	GetPortOfApp(appDir string) (string, error)
+	GetPortAndPathOfApp(appDir string) (string, string, error)
 	InjectPortInDockerCompose(appDir string) error
 	RunInjectedDockerCompose(appDir string) error
 
@@ -20,7 +20,7 @@ type SingleAppUpdateFileSystemOperator interface {
 
 //go:generate mockery
 type EndpointChecker interface {
-	TryAccessingIndexPageOnLocalhost(port string) error
+	TryAccessingIndexPageOnLocalhost(port string, path string) error
 }
 
 //go:generate mockery

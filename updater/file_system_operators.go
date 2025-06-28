@@ -7,7 +7,7 @@ func (f FileSystemOperatorImpl) GetListOfApps(appsDir string) ([]string, error) 
 	panic("implement me")
 }
 
-func (f FileSystemOperatorImpl) GetPortOfApp(appDir string) (string, error) {
+func (f FileSystemOperatorImpl) GetPortAndPathOfApp(appDir string) (string, string, error) {
 	//TODO implement me
 	panic("implement me")
 }

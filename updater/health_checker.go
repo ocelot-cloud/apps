@@ -28,7 +28,7 @@ func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthR
 
 func (u *HealthCheckerImpl) ConductHealthcheckForSingleApp(app string) AppHealthReport {
 	appDir := u.appsDir + "/" + app
-	port, err := u.fileSystemOperator.GetPortOfApp(appDir)
+	port, path, err := u.fileSystemOperator.GetPortAndPathOfApp(appDir)
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to get port", err)
 	}
@@ -41,7 +41,7 @@ func (u *HealthCheckerImpl) ConductHealthcheckForSingleApp(app string) AppHealth
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to run docker-compose", err)
 	}
-	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port)
+	err = u.endpointChecker.TryAccessingIndexPageOnLocalhost(port, path)
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to access index page", err)
 	}
