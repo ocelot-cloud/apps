@@ -32,12 +32,8 @@ func (u *HealthCheckerImpl) ConductHealthcheckForSingleApp(app string) AppHealth
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to get port", err)
 	}
-	err = u.fileSystemOperator.InjectPortInDockerCompose(appDir)
-	if err != nil {
-		return getAppHealthReportWithError(app, "Failed to inject port in docker-compose", err)
-	}
 
-	err = u.fileSystemOperator.RunInjectedDockerCompose(appDir)
+	err = u.fileSystemOperator.RunDockerCompose(appDir, port)
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to run docker-compose", err)
 	}

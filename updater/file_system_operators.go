@@ -21,14 +21,7 @@ func (f FileSystemOperatorImpl) GetPortAndPathOfApp(appDir string) (string, stri
 	panic("implement me")
 }
 
-// TODO isnt there a port argument missing?
-// TODO !! I could simply merge GetPortAndPathOfApp, InjectPortInDockerCompose, RunInjectedDockerCompose
-func (f FileSystemOperatorImpl) InjectPortInDockerCompose(appDir string) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (f FileSystemOperatorImpl) RunInjectedDockerCompose(appDir string) error {
+func (f FileSystemOperatorImpl) RunDockerCompose(appDir, port string) error {
 	//TODO implement me
 	panic("implement me")
 }

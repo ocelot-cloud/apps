@@ -5,8 +5,7 @@ type FileSystemOperator interface {
 	// needed for healthchecks and updates
 	GetListOfApps(appsDir string) ([]string, error)
 	GetPortAndPathOfApp(appDir string) (string, string, error)
-	InjectPortInDockerCompose(appDir string) error
-	RunInjectedDockerCompose(appDir string) error
+	RunDockerCompose(appDir, port string) error
 
 	GetDockerComposeFileContent(appDir string) ([]byte, error)
 	WriteDockerComposeFileContent(appDir string, content []byte) error

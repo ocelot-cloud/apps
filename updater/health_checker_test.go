@@ -33,8 +33,7 @@ func TestUpdater_PerformHealthCheck(t *testing.T) {
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetPortAndPathOfApp(appDir).Return("8080", "/", nil)
-	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(nil)
-	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(nil)
+	fileSystemOperatorMock.EXPECT().RunDockerCompose(appDir, "8080").Return(nil)
 	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080", "/").Return(nil)
 
 	report, err := healthChecker.PerformHealthChecks()
@@ -87,25 +86,13 @@ func assertErrorInReport(t *testing.T, actualError error, report *HealthCheckRep
 	assert.Equal(t, expectedHighLevelError+": "+expectedLowLevelError, appReport.ErrorMessage)
 }
 
-func TestUpdater_InjectPortInDockerComposeFails(t *testing.T) {
-	setupHealthChecker(t)
-	defer assertHealthCheckerMockExpectations(t)
-
-	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
-	fileSystemOperatorMock.EXPECT().GetPortAndPathOfApp(appDir).Return("8080", "/", nil)
-	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(errors.New("some error"))
-
-	performHealthCheckAndAssertFailedAppReport(t, healthChecker, "Failed to inject port in docker-compose")
-}
-
 func TestUpdater_RunInjectedDockerComposeFails(t *testing.T) {
 	setupHealthChecker(t)
 	defer assertHealthCheckerMockExpectations(t)
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetPortAndPathOfApp(appDir).Return("8080", "/", nil)
-	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(nil)
-	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().RunDockerCompose(appDir, "8080").Return(errors.New("some error"))
 
 	performHealthCheckAndAssertFailedAppReport(t, healthChecker, "Failed to run docker-compose")
 }
@@ -116,8 +103,7 @@ func TestUpdater_TryAccessingIndexPageOnLocalhostFails(t *testing.T) {
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(mockAppsDir).Return([]string{"sampleapp"}, nil)
 	fileSystemOperatorMock.EXPECT().GetPortAndPathOfApp(appDir).Return("8080", "/", nil)
-	fileSystemOperatorMock.EXPECT().InjectPortInDockerCompose(appDir).Return(nil)
-	fileSystemOperatorMock.EXPECT().RunInjectedDockerCompose(appDir).Return(nil)
+	fileSystemOperatorMock.EXPECT().RunDockerCompose(appDir, "8080").Return(nil)
 	endpointCheckerMock.EXPECT().TryAccessingIndexPageOnLocalhost("8080", "/").Return(errors.New("some error"))
 
 	performHealthCheckAndAssertFailedAppReport(t, healthChecker, "Failed to access index page")
