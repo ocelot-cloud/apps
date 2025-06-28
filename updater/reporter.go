@@ -22,9 +22,9 @@ func reportHealth(h HealthCheckReport) string {
 	return b.String()
 }
 
-func reportUpdate(u UpdateReport) string {
+func reportUpdate(updateReport UpdateReport) string {
 	var b strings.Builder
-	for _, a := range u.AppUpdateReport {
+	for _, a := range updateReport.AppUpdateReport {
 		switch {
 		case !a.WasSuccessful:
 			if a.AppUpdates != nil && a.AppUpdates.ErrorMessage != "" {
@@ -54,7 +54,7 @@ func reportUpdate(u UpdateReport) string {
 			fmt.Fprintf(&b, "%s: %s%s\n", a.AppName, strings.Join(parts, "; "), health)
 		}
 	}
-	if u.WasSuccessful {
+	if updateReport.WasSuccessful {
 		b.WriteString("Summary: Update successful")
 	} else {
 		b.WriteString("Summary: Update failed")
