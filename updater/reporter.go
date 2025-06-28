@@ -15,45 +15,49 @@ func reportHealth(h HealthCheckReport) string {
 		}
 	}
 	if h.AllAppsHealthy {
-		b.WriteString("Summary: All apps are healthy")
+		b.WriteString("Summary: All apps are healthy\n")
 	} else {
-		b.WriteString("Summary: Some apps are unhealthy")
+		b.WriteString("Summary: Some apps are unhealthy\n")
 	}
 	return b.String()
 }
 
 func reportUpdate(updateReport UpdateReport) string {
-	var b strings.Builder
-	for _, a := range updateReport.AppUpdateReport {
-		switch {
-		case !a.WasSuccessful:
-			if a.AppUpdates != nil && len(a.AppUpdates.ServiceUpdates) > 0 && a.AppUpdates.ErrorMessage != "" {
-				fmt.Fprintf(&b, "%s: service update error - %s\n", a.AppName, a.AppUpdates.ErrorMessage)
-			} else {
-				fmt.Fprintf(&b, "%s: update failed - %s\n", a.AppName, a.UpdateErrorMessage)
-			}
-		case !a.WasUpdateAvailable:
-			fmt.Fprintf(&b, "%s: no update available\n", a.AppName)
-		default:
-			parts := make([]string, 0, len(a.AppUpdates.ServiceUpdates))
-			for _, s := range a.AppUpdates.ServiceUpdates {
-				parts = append(parts, fmt.Sprintf("%s %s->%s", s.ServiceName, s.OldTag, s.NewTag))
-			}
-			health := ""
-			if a.AppHealthReport != nil {
-				if a.AppHealthReport.Healthy {
-					health = ", Health: OK"
-				} else {
-					health = ", Health: " + a.AppHealthReport.ErrorMessage
-				}
-			}
-			fmt.Fprintf(&b, "%s: %s%s\n", a.AppName, strings.Join(parts, "; "), health)
-		}
+	var builder strings.Builder
+	for _, appUpdateReport := range updateReport.AppUpdateReport {
+		addUpdateReportLine(appUpdateReport, &builder)
 	}
 	if updateReport.WasSuccessful {
-		b.WriteString("Summary: Update successful")
+		fmt.Fprintf(&builder, "Summary: Update successful\n")
 	} else {
-		b.WriteString("Summary: Update failed")
+		fmt.Fprintf(&builder, "Summary: Update failed\n")
 	}
-	return b.String()
+	return builder.String()
+}
+
+func addUpdateReportLine(a AppUpdateReport, b *strings.Builder) {
+	switch {
+	case !a.WasSuccessful:
+		if a.AppUpdates != nil && len(a.AppUpdates.ServiceUpdates) > 0 && a.AppUpdates.ErrorMessage != "" {
+			fmt.Fprintf(b, "%s: service update error - %s\n", a.AppName, a.AppUpdates.ErrorMessage)
+		} else {
+			fmt.Fprintf(b, "%s: update failed - %s\n", a.AppName, a.UpdateErrorMessage)
+		}
+	case !a.WasUpdateAvailable:
+		fmt.Fprintf(b, "%s: no update available\n", a.AppName)
+	default:
+		parts := make([]string, 0, len(a.AppUpdates.ServiceUpdates))
+		for _, s := range a.AppUpdates.ServiceUpdates {
+			parts = append(parts, fmt.Sprintf("%s %s->%s", s.ServiceName, s.OldTag, s.NewTag))
+		}
+		health := ""
+		if a.AppHealthReport != nil {
+			if a.AppHealthReport.Healthy {
+				health = ", Health: OK"
+			} else {
+				health = ", Health: " + a.AppHealthReport.ErrorMessage
+			}
+		}
+		fmt.Fprintf(b, "%s: %s%s\n", a.AppName, strings.Join(parts, "; "), health)
+	}
 }

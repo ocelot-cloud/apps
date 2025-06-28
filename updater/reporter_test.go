@@ -17,7 +17,7 @@ func TestReportHealthWorked(t *testing.T) {
 		},
 	}
 	output := reportHealth(report)
-	assert.Equal(t, "sample-app: OK\nSummary: All apps are healthy", output)
+	assert.Equal(t, "sample-app: OK\nSummary: All apps are healthy\n", output)
 }
 
 func TestReportHealthFailed(t *testing.T) {
@@ -32,7 +32,7 @@ func TestReportHealthFailed(t *testing.T) {
 		},
 	}
 	output := reportHealth(report)
-	assert.Equal(t, "sample-app: some-error\nSummary: Some apps are unhealthy", output)
+	assert.Equal(t, "sample-app: some-error\nSummary: Some apps are unhealthy\n", output)
 }
 
 /* TODO additional cases for reportUpdate:
@@ -65,7 +65,7 @@ func TestReportUpdateWorked(t *testing.T) {
 			}, ""),
 	}}
 	out := reportUpdate(r)
-	assert.Equal(t, "sample-app: nginx 1.0->1.1; nginx2 2.2->2.3, Health: OK\nSummary: Update successful", out)
+	assert.Equal(t, "sample-app: nginx 1.0->1.1; nginx2 2.2->2.3, Health: OK\nSummary: Update successful\n", out)
 }
 
 func TestReportUpdateFail(t *testing.T) {
@@ -73,7 +73,7 @@ func TestReportUpdateFail(t *testing.T) {
 		newUpd(false, true, nil, nil, "some-update-error"),
 	}}
 	out := reportUpdate(r)
-	assert.Equal(t, "sample-app: update failed - some-update-error\nSummary: Update failed", out)
+	assert.Equal(t, "sample-app: update failed - some-update-error\nSummary: Update failed\n", out)
 }
 
 func TestReportUpdateNotAvailable(t *testing.T) {
@@ -81,7 +81,7 @@ func TestReportUpdateNotAvailable(t *testing.T) {
 		newUpd(true, false, nil, nil, ""),
 	}}
 	out := reportUpdate(r)
-	assert.Equal(t, "sample-app: no update available\nSummary: Update successful", out)
+	assert.Equal(t, "sample-app: no update available\nSummary: Update successful\n", out)
 }
 
 func TestReportUpdateServiceFailed(t *testing.T) {
@@ -90,7 +90,7 @@ func TestReportUpdateServiceFailed(t *testing.T) {
 			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service update failed"),
 	}}
 	out := reportUpdate(r)
-	assert.Equal(t, "sample-app: service update error - service update failed\nSummary: Update failed", out)
+	assert.Equal(t, "sample-app: service update error - service update failed\nSummary: Update failed\n", out)
 }
 
 func TestReportUpdateWithHealthcheckFailed(t *testing.T) {
@@ -103,5 +103,5 @@ func TestReportUpdateWithHealthcheckFailed(t *testing.T) {
 			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service update failed"),
 	}}
 	out := reportUpdate(r)
-	assert.Equal(t, "sample-app: nginx 1.0->1.1, Health: endpoint no available\nSummary: Update failed", out)
+	assert.Equal(t, "sample-app: nginx 1.0->1.1, Health: endpoint no available\nSummary: Update failed\n", out)
 }
