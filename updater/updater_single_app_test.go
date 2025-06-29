@@ -89,3 +89,20 @@ func TestAppUpdater_FilterLatestImageTagFails(t *testing.T) {
 	_, err := singleAppUpdaterReal.Fetch(sampleAppDir)
 	assert.Equal(t, "integer conversion failed", err.Error())
 }
+
+func TestAppUpdater_MainServiceIsNotUpdatedButSideServiceIsUpdated(t *testing.T) {
+	setupSingleAppUpdater(t)
+	defer assertSingleAppUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.EXPECT().GetAppServices(sampleAppDir).Return([]Service{
+		{Name: "sampleapp", Image: "ocelot/sampleapp", Tag: "1.0"},
+		{Name: "database", Image: "ocelot/database", Tag: "2.0"},
+	}, nil)
+	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0"}, nil)
+	dockerHubClientMock.EXPECT().listImageTags("ocelot/database").Return([]string{"2.0", "2.1"}, nil)
+
+	appUpdate, err := singleAppUpdaterReal.Fetch(sampleAppDir)
+	assert.Nil(t, err)
+	assert.False(t, appUpdate.WasUpdateFound)
+	assert.Equal(t, 0, len(appUpdate.ServiceUpdates))
+}
