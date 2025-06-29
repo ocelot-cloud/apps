@@ -1,7 +1,6 @@
 TODOS
 
 features:
-* it is only an update if the main service has a new version; otherwise, even if the other services have a new version, it is not an update to conduct -> add test case
 * app selection: add argument []string, if empty perform on all apps, otherwise only on specified apps
 * updates should be written into the docker-compose.yml file
   * login to store

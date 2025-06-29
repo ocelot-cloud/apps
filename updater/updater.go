@@ -48,6 +48,7 @@ func (a *AppUpdateFetcherImpl) Fetch(appDir string) (*AppUpdate, error) {
 
 		// We only apply an update when the apps main service is upgraded. For example, in a Gitea stack, changing the database container alone is ignored; an update only counts if the Gitea service (i.e. the web UI) is upgraded. This rule exists because the Ocelot app package is named after the main service’s version, e.g. 1.2.3.zip corresponds to gitea/gitea:1.2.3 in docker-compose.yml. Updating secondary services without changing the tag of the main service would leave the package version unchanged, and we must not publish multiple packages with the same version number.
 		if !wasUpdateOfMainServiceFound {
+			logger.Info("there seem to be newer version for side services, but no update found for main service '%s' in app '%s', skipping update", mainService, appDir)
 			appUpdate.ServiceUpdates = nil
 			appUpdate.WasUpdateFound = false
 		}
