@@ -170,31 +170,3 @@ func (s *SingleAppUpdateFileSystemOperatorImpl) GetAppServices(appDir string) ([
 	sort.Slice(res, func(i, j int) bool { return res[i].Name < res[j].Name })
 	return res, nil
 }
-
-func (s *SingleAppUpdateFileSystemOperatorImpl) WriteNewTagToTheDockerCompose(appDir, serviceName, newTag string) error {
-	data, err := os.ReadFile(filepath.Join(appDir, "docker-compose.yml"))
-	if err != nil {
-		return err
-	}
-	var c struct {
-		Version  any `yaml:"version,omitempty"`
-		Services map[string]struct {
-			Image string `yaml:"image"`
-		} `yaml:"services"`
-	}
-	if err := yaml.Unmarshal(data, &c); err != nil {
-		return err
-	}
-	svc, ok := c.Services[serviceName]
-	if !ok {
-		return fmt.Errorf("service %s not found", serviceName)
-	}
-	base := strings.SplitN(svc.Image, ":", 2)[0]
-	svc.Image = base + ":" + newTag
-	c.Services[serviceName] = svc
-	newData, err := yaml.Marshal(&c)
-	if err != nil {
-		return err
-	}
-	return os.WriteFile(filepath.Join(appDir, "docker-compose-injected.yml"), newData, 0o600)
-}

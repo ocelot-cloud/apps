@@ -33,36 +33,6 @@ services:
 	require.Equal(t, Service{Name: "redis", Image: "redis", Tag: "6.0"}, appServices[1])
 }
 
-func TestWriteNewTag(t *testing.T) {
-	tempDir := t.TempDir()
-	writeCompose(tempDir, `version: "3"
-services:
-  sample-app:
-    image: nginx:1.0
-`)
-	fsOperator := &SingleAppUpdateFileSystemOperatorImpl{}
-	require.NoError(t, fsOperator.WriteNewTagToTheDockerCompose(tempDir, "sample-app", "1.1"))
-
-	newComposeContentBytes, err := os.ReadFile(filepath.Join(tempDir, "docker-compose-injected.yml"))
-	require.NoError(t, err)
-
-	var newDockerComposeContent DockerCompose
-	require.NoError(t, yaml.Unmarshal(newComposeContentBytes, &newDockerComposeContent))
-	require.Equal(t, "nginx:1.1", newDockerComposeContent.Services["sample-app"].Image)
-}
-
-func TestWriteNewTag_ServiceNotFound(t *testing.T) {
-	tempDir := t.TempDir()
-	writeCompose(tempDir, `version: "3"
-services:
-  other:
-    image: nginx:1.0
-`)
-	fsOperator := &SingleAppUpdateFileSystemOperatorImpl{}
-	err := fsOperator.WriteNewTagToTheDockerCompose(tempDir, "sample-app", "1.1")
-	require.Error(t, err)
-}
-
 func TestGetListOfApps(t *testing.T) {
 	dir := t.TempDir()
 	_ = os.Mkdir(filepath.Join(dir, "gitea"), 0o755)
