@@ -13,6 +13,7 @@ func (u *HealthCheckerImpl) PerformHealthChecks() (*HealthCheckReport, error) {
 		if !appReport.Healthy {
 			report.AllAppsHealthy = false
 		}
+		logger.Info("Was app '%s' healthy: %t", app, appReport.Healthy)
 		report.AppHealthReports = append(report.AppHealthReports, appReport)
 	}
 	return report, nil
@@ -29,6 +30,7 @@ func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthR
 
 func (u *HealthCheckerImpl) ConductHealthcheckForSingleApp(app string) AppHealthReport {
 	appDir := appsDir + "/" + app
+	logger.Info("Health check for app %s", app)
 	port, path, err := u.fileSystemOperator.GetPortAndPathOfApp(appDir)
 	if err != nil {
 		return getAppHealthReportWithError(app, "Failed to get port", err)

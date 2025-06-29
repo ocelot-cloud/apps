@@ -11,6 +11,7 @@ import (
 type DockerHubClientImpl struct{}
 
 func (d *DockerHubClientImpl) listImageTags(image string) ([]string, error) {
+	logger.Info("fetching tags for Docker image '%s'", image)
 	var repoPath string
 	if strings.Contains(image, "/") {
 		// for unofficial images like "gitea/gitea"
@@ -22,7 +23,7 @@ func (d *DockerHubClientImpl) listImageTags(image string) ([]string, error) {
 	url := fmt.Sprintf("https://registry.hub.docker.com/v2/repositories/%s/tags?page_size=100", repoPath)
 	resp, err := http.Get(url)
 	if err != nil {
-		logger.Error("failed to fetch tags for image '%s': %v", image, err)
+		logger.Error("failed to fetch tags for Docker image '%s': %v", image, err)
 		return nil, err
 	}
 	defer resp.Body.Close()

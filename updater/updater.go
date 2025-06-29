@@ -19,6 +19,7 @@ func (a *AppUpdateFetcherImpl) Fetch(appDir string) (*AppUpdate, error) {
 		}
 
 		if newTag != "" {
+			logger.Info("Found new tag for service '%s': %s -> %s", service.Name, service.Tag, newTag)
 			newUpdate := ServiceUpdate{
 				ServiceName: service.Name,
 				OldTag:      service.Tag,
@@ -45,11 +46,13 @@ func (u *Updater) PerformUpdate() (*UpdateReport, error) {
 		WasSuccessful: true,
 	}
 	for _, app := range apps {
+		logger.Info("Performing update for app '%s'", app)
 		appUpdateReport := u.conductUpdateForSingleApp(app)
 		appUpdateReport.AppName = app
 		if !appUpdateReport.WasSuccessful {
 			report.WasSuccessful = false
 		}
+		logger.Info("Was update process for app '%s' successful: %t", app, appUpdateReport.WasSuccessful)
 		report.AppUpdateReport = append(report.AppUpdateReport, appUpdateReport)
 	}
 	return report, nil
@@ -75,12 +78,14 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	}
 
 	if !appUpdate.WasUpdateFound {
+		logger.Info("No update available for app '%s'", app)
 		report := getEmptyAppUpdateReport()
 		report.WasSuccessful = true
 		return report
 	}
 
 	appHealthReport := u.healthChecker.ConductHealthcheckForSingleApp(app)
+	logger.Info("Was app healthy after update: %v", appHealthReport)
 	if !appHealthReport.Healthy {
 		u.resetDockerComposeYamlToInitialContent(appDir, originalContent)
 		report := getEmptyAppUpdateReport()
