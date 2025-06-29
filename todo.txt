@@ -15,7 +15,7 @@ features:
 * concurrency: RunDocker(..., port) function executes its logic concurrently. However, we add a lock, that ensures that maximum one instance per port is running at the same time. Should make updates much faster
 
 * add apps?
-  * take care of todo folder: either make it a production app or remove it
+  * take care of to-do folder: either make it a production app or remove it
   * odoo for ERP
   * limesurvey for feedback
   * "discuit" for memes

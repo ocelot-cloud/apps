@@ -129,49 +129,6 @@ func (f FileSystemOperatorImpl) WriteDockerComposeFileContent(appDir string, con
 }
 
 func (f FileSystemOperatorImpl) WriteServiceUpdatesIntoComposeFile(appDir string, serviceUpdates []ServiceUpdate) error {
-	/* TODO implementation idea
-
-	updatedDockerComposeContent, err := updateDockerComposeContent(originalDockerComposeContent, serviceUpdates)
-	if err != nil {
-		// TODO To be covered
-		u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
-		return err
-	}
-
-	err = u.fileSystemOperator.WriteDockerComposeFileContent(appDir, updatedDockerComposeContent)
-	if err != nil {
-		u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
-		return err
-	}
+	// TODO
 	return nil
-	*/
-	return nil
-}
-
-type SingleAppUpdateFileSystemOperatorImpl struct{}
-
-func (s *SingleAppUpdateFileSystemOperatorImpl) GetAppServices(appDir string) ([]Service, error) {
-	data, err := os.ReadFile(filepath.Join(appDir, "docker-compose.yml"))
-	if err != nil {
-		return nil, err
-	}
-	var c struct {
-		Services map[string]struct {
-			Image string `yaml:"image"`
-		} `yaml:"services"`
-	}
-	if err := yaml.Unmarshal(data, &c); err != nil {
-		return nil, err
-	}
-	res := make([]Service, 0, len(c.Services))
-	for name, v := range c.Services {
-		p := strings.SplitN(v.Image, ":", 2)
-		tag := ""
-		if len(p) == 2 {
-			tag = p[1]
-		}
-		res = append(res, Service{Name: name, Image: p[0], Tag: tag})
-	}
-	sort.Slice(res, func(i, j int) bool { return res[i].Name < res[j].Name })
-	return res, nil
 }

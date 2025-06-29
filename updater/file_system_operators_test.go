@@ -25,7 +25,7 @@ services:
   redis:
     image: redis:6.0
 `)
-	fsOperator := &SingleAppUpdateFileSystemOperatorImpl{}
+	fsOperator := &FileSystemOperatorImpl{}
 	appServices, err := fsOperator.GetAppServices(tempDir)
 	require.NoError(t, err)
 	require.Len(t, appServices, 2)
