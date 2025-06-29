@@ -29,14 +29,17 @@ func (f FileSystemOperatorImpl) GetAppServices(appDir string) ([]Service, error)
 	path := filepath.Join(appDir, "docker-compose.yml")
 	data, err := os.ReadFile(path)
 	if err != nil {
+		logger.Error("failed to read docker-compose.yml: %v", err)
 		return nil, err
 	}
 	var doc map[string]interface{}
 	if err := yaml.Unmarshal(data, &doc); err != nil {
+		logger.Error("failed to unmarshal docker-compose.yml: %v", err)
 		return nil, err
 	}
 	svcMap, ok := doc["services"].(map[string]interface{})
 	if !ok {
+		logger.Error("services key missing in docker-compose.yml")
 		return nil, errors.New("services key missing")
 	}
 	var services []Service
@@ -80,6 +83,7 @@ func (f FileSystemOperatorImpl) GetPortAndPathOfApp(appDir string) (string, stri
 	data, err := os.ReadFile(filepath.Join(appDir, "app.yml"))
 	if err != nil {
 		if os.IsNotExist(err) {
+			logger.Info("app.yml not found in %s, using default port and path", appDir)
 			return port, path, nil
 		}
 		return "", "", err
@@ -105,6 +109,7 @@ func (f FileSystemOperatorImpl) RunDockerCompose(appDir, port string) (string, e
 	}
 	var c map[string]any
 	if err := yaml.Unmarshal(raw, &c); err != nil {
+		logger.Error("failed to unmarshal docker-compose.yml: %v", err)
 		return "", err
 	}
 	services, ok := c["services"].(map[string]any)
@@ -124,14 +129,17 @@ func (f FileSystemOperatorImpl) RunDockerCompose(appDir, port string) (string, e
 	}
 	out, err := yaml.Marshal(&c)
 	if err != nil {
+		logger.Error("failed to marshal updated docker-compose.yml: %v", err)
 		return "", err
 	}
 	tmp, err := os.CreateTemp("", "compose-*.yml")
 	if err != nil {
+		logger.Error("failed to create temporary docker-compose file: %v", err)
 		return "", err
 	}
 	defer tmp.Close()
 	if _, err = tmp.Write(out); err != nil {
+		logger.Error("failed to write to temporary docker-compose file: %v", err)
 		return "", err
 	}
 	cmd := exec.Command("docker", "compose", "-f", tmp.Name(), "up", "-d")
@@ -152,22 +160,40 @@ func (f FileSystemOperatorImpl) ShutdownStackAndDeleteComposeFile(composeFilePat
 }
 
 func (f FileSystemOperatorImpl) GetDockerComposeFileContent(appDir string) ([]byte, error) {
-	return os.ReadFile(filepath.Join(appDir, "docker-compose.yml"))
+	data, err := os.ReadFile(filepath.Join(appDir, "docker-compose.yml"))
+	if err != nil {
+		logger.Error("failed to read docker-compose.yml: %v", err)
+		return nil, fmt.Errorf("failed to read docker-compose.yml")
+	}
+	return data, nil
 }
 
 func (f FileSystemOperatorImpl) WriteDockerComposeFileContent(appDir string, content []byte) error {
-	return os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), content, 0o600)
+	err := os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), content, 0o600)
+	if err != nil {
+		logger.Error("failed to write docker-compose.yml: %v", err)
+		return fmt.Errorf("failed to write docker-compose.yml")
+	}
+	return nil
 }
 
 func (f FileSystemOperatorImpl) WriteServiceUpdatesIntoComposeFile(appDir string, serviceUpdates []ServiceUpdate) error {
 	path := filepath.Join(appDir, "docker-compose.yml")
 	data, err := os.ReadFile(path)
 	if err != nil {
+		logger.Error("failed to read docker-compose.yml: %v", err)
 		return err
 	}
 	updated, err := UpdateComposeTags(data, serviceUpdates)
 	if err != nil {
+		logger.Error("failed to update docker-compose.yml with service updates: %v", err)
 		return err
 	}
-	return os.WriteFile(path, updated, 0600)
+
+	err = os.WriteFile(path, updated, 0600)
+	if err != nil {
+		logger.Error("failed to write updated docker-compose.yml: %v", err)
+		return fmt.Errorf("failed to write updated docker-compose.yml")
+	}
+	return nil
 }

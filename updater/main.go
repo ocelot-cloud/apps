@@ -45,7 +45,6 @@ var rootCmd = &cobra.Command{
 	},
 }
 
-// TODO I need more logging.
 var updateCmd = &cobra.Command{
 	Use:   "Fetch",
 	Short: "updates all apps and performs health checks",

@@ -22,6 +22,7 @@ func (d *DockerHubClientImpl) listImageTags(image string) ([]string, error) {
 	url := fmt.Sprintf("https://registry.hub.docker.com/v2/repositories/%s/tags?page_size=100", repoPath)
 	resp, err := http.Get(url)
 	if err != nil {
+		logger.Error("failed to fetch tags for image '%s': %v", image, err)
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -32,6 +33,7 @@ func (d *DockerHubClientImpl) listImageTags(image string) ([]string, error) {
 		} `json:"results"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+		logger.Error("failed to decode response for image '%s': %v", image, err)
 		return nil, err
 	}
 
@@ -48,6 +50,7 @@ func FilterLatestImageTag(originalTag string, tagList []string) (string, error) 
 
 	originalTagNumbers, err := parse(originalTag)
 	if err != nil {
+		logger.Debug("failed to parse original tag '%s': %v", originalTag, err)
 		return "", err
 	}
 	listOfAllTagNumbers := parseTagList(tagList)

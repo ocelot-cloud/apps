@@ -21,10 +21,12 @@ func (e EndpointCheckerImpl) TryAccessingIndexPageOnLocalhost(port string, path 
 			if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 				return nil
 			}
+			logger.Error("unexpected status code %d for %s", resp.StatusCode, url)
 			return fmt.Errorf("unexpected status: %s", resp.Status)
 		}
 
 		if time.Now().After(deadline) {
+			logger.Error("timeout reaching %s: %v", url, err)
 			return fmt.Errorf("timeout reaching %s: %w", url, err)
 		}
 		time.Sleep(2 * time.Second)
