@@ -21,7 +21,6 @@ var (
 	singleAppUpdateFileSystemOperatorMock *SingleAppUpdateFileSystemOperatorMock
 )
 
-// TODO these are quite a lot of mocks, do I still need all of them?
 func setupUpdater(t *testing.T) {
 	fileSystemOperatorMock = NewFileSystemOperatorMock(t)
 	healthCheckerMock = NewHealthCheckerMock(t)
@@ -129,7 +128,7 @@ func TestUpdater_PerformUpdate_WriteDockerComposeFileContentFails(t *testing.T) 
 
 	defer func() {
 		if r := recover(); r != nil {
-			assert.Equal(t, "Failed to write docker-compose file back to original state: some other error", r)
+			assert.Equal(t, "Failed to write docker-compose file back to original state, which should never happen: some other error", r)
 		} else {
 			t.Fatal("expected panic but none occurred")
 		}

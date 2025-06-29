@@ -1,6 +1,5 @@
 package main
 
-// TODO dont pass the appDir in any function. Just pass "app" and construct the appDir from the global appDir inside the methods
 func (a *SingleAppUpdaterImpl) fetchAppUpdate(appDir string) (*AppUpdate, error) {
 	services, err := a.fsOperator.GetAppServices(appDir)
 	if err != nil {
@@ -98,11 +97,6 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	}
 }
 
-// TODO use in memory yamls for testing, should fail when service was not found
-func updateDockerComposeContent(content []byte, updates []ServiceUpdate) ([]byte, error) {
-	return nil, nil
-}
-
 func getEmptyUpdateReport() AppUpdateReport {
 	return AppUpdateReport{
 		AppName:            "sampleapp",
@@ -114,10 +108,9 @@ func getEmptyUpdateReport() AppUpdateReport {
 	}
 }
 
-// TODO can be inlined I guess
 func (u *Updater) resetDockerComposeYamlToInitialContent(appDir string, originalDockerComposeContent []byte) {
 	err := u.fileSystemOperator.WriteDockerComposeFileContent(appDir, originalDockerComposeContent)
 	if err != nil {
-		panic("Failed to write docker-compose file back to original state: " + err.Error())
+		panic("Failed to write docker-compose file back to original state, which should never happen: " + err.Error())
 	}
 }
