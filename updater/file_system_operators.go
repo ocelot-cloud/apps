@@ -123,6 +123,26 @@ func (f FileSystemOperatorImpl) WriteDockerComposeFileContent(appDir string, con
 	return os.WriteFile(filepath.Join(appDir, "docker-compose.yml"), content, 0o600)
 }
 
+func (f FileSystemOperatorImpl) WriteServiceUpdatesIntoComposeFile(appDir string, serviceUpdates []ServiceUpdate) error {
+	/* TODO implementation idea
+
+	updatedDockerComposeContent, err := updateDockerComposeContent(originalDockerComposeContent, serviceUpdates)
+	if err != nil {
+		// TODO To be covered
+		u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
+		return err
+	}
+
+	err = u.fileSystemOperator.WriteDockerComposeFileContent(appDir, updatedDockerComposeContent)
+	if err != nil {
+		u.resetDockerComposeYamlToInitialContent(appDir, originalDockerComposeContent)
+		return err
+	}
+	return nil
+	*/
+	return nil
+}
+
 type SingleAppUpdateFileSystemOperatorImpl struct{}
 
 func (s *SingleAppUpdateFileSystemOperatorImpl) GetAppServices(appDir string) ([]Service, error) {
@@ -176,5 +196,5 @@ func (s *SingleAppUpdateFileSystemOperatorImpl) WriteNewTagToTheDockerCompose(ap
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(filepath.Join(appDir, "docker-compose-injected.yml"), newData, 0o644)
+	return os.WriteFile(filepath.Join(appDir, "docker-compose-injected.yml"), newData, 0o600)
 }

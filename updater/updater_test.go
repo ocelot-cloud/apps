@@ -21,17 +21,20 @@ var (
 	singleAppUpdateFileSystemOperatorMock *SingleAppUpdateFileSystemOperatorMock
 )
 
+// TODO these are quite a lot of mocks, do I still need all of them?
 func setupUpdater(t *testing.T) {
 	fileSystemOperatorMock = NewFileSystemOperatorMock(t)
 	singleAppUpdaterMock = NewSingleAppUpdaterMock(t)
 	dockerHubClientMock = NewDockerHubClientMock(t)
 	healthCheckerMock = NewHealthCheckerMock(t)
+	updateApplierMock = NewUpdateApplierMock(t)
 
 	updater = &Updater{
 		fileSystemOperator: fileSystemOperatorMock,
 		appUpdater:         singleAppUpdaterMock,
 		dockerHubClient:    dockerHubClientMock,
 		healthChecker:      healthCheckerMock,
+		updateApplier:      updateApplierMock, // TODO !! I need to adapt the provider so that this dependency is wired
 	}
 }
 
@@ -39,25 +42,18 @@ func assertUpdaterMockExpectations(t *testing.T) {
 	fileSystemOperatorMock.AssertExpectations(t)
 	dockerHubClientMock.AssertExpectations(t)
 	healthCheckerMock.AssertExpectations(t)
+	updateApplierMock.AssertExpectations(t)
+	singleAppUpdaterMock.AssertExpectations(t)
 }
 
 func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
-	appUpdate := &AppUpdate{
-		WasUpdateFound: true,
-		ServiceUpdates: []ServiceUpdate{
-			{
-				ServiceName: "service1",
-				OldTag:      "1.0.0",
-				NewTag:      "1.0.1",
-			},
-		},
-	}
+	appUpdate := getSampleAppUpdate()
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{sampleAppName}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.EXPECT().update(sampleAppDir).Return(appUpdate, nil)
+	updateApplierMock.EXPECT().ApplyUpdate(sampleAppDir).Return(appUpdate, nil)
 
 	healthCheckerMock.EXPECT().ConductHealthcheckForSingleApp(sampleAppName).Return(getHealthyReport())
 
@@ -80,6 +76,21 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	assert.Equal(t, "1.0.1", serviceUpdate.NewTag)
 }
 
+func getSampleAppUpdate() *AppUpdate {
+	serviceUpdates := []ServiceUpdate{
+		{
+			ServiceName: "service1",
+			OldTag:      "1.0.0",
+			NewTag:      "1.0.1",
+		},
+	}
+	appUpdate := &AppUpdate{
+		WasUpdateFound: true,
+		ServiceUpdates: serviceUpdates,
+	}
+	return appUpdate
+}
+
 func getHealthyReport() AppHealthReport {
 	return AppHealthReport{
 		AppName:      sampleAppName,
@@ -98,43 +109,29 @@ func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{sampleAppName}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.EXPECT().update(sampleAppDir).Return(appUpdate, nil)
+	updateApplierMock.EXPECT().ApplyUpdate(sampleAppDir).Return(appUpdate, nil)
 
 	report, err := updater.PerformUpdate()
 	assert.Nil(t, err)
 	assert.True(t, report.WasSuccessful)
 	actualReport := report.AppUpdateReport[0]
-	expectedReport := getEmptyReport()
+	expectedReport := getEmptyUpdateReport()
 	expectedReport.WasSuccessful = true
-	assert.Equal(t, expectedReport, actualReport)
-}
-
-func TestUpdater_PerformUpdate_SingleAppUpdateFails(t *testing.T) {
-	setupUpdater(t)
-	defer assertUpdaterMockExpectations(t)
-
-	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{sampleAppName}, nil)
-	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.EXPECT().update(sampleAppDir).Return(nil, errors.New("some error"))
-	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(sampleAppDir, []byte("sample content")).Return(nil)
-
-	updateReport, err := updater.PerformUpdate()
-	assert.Nil(t, err)
-	assert.False(t, updateReport.WasSuccessful)
-	assert.Equal(t, 1, len(updateReport.AppUpdateReport))
-	actualReport := updateReport.AppUpdateReport[0]
-	expectedReport := getEmptyReport()
-	expectedReport.UpdateErrorMessage = "Failed to update app: some error"
 	assert.Equal(t, expectedReport, actualReport)
 }
 
 func TestUpdater_PerformUpdate_WriteDockerComposeFileContentFails(t *testing.T) {
 	setupUpdater(t)
 	defer assertUpdaterMockExpectations(t)
+	sampleAppUpdate := getSampleAppUpdate()
 
 	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{sampleAppName}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return([]byte("sample content"), nil)
-	singleAppUpdaterMock.EXPECT().update(sampleAppDir).Return(nil, errors.New("some error"))
+	updateApplierMock.EXPECT().ApplyUpdate(sampleAppDir).Return(sampleAppUpdate, nil)
+	unhealthyReport := getHealthyReport()
+	unhealthyReport.Healthy = false
+	unhealthyReport.ErrorMessage = "some error"
+	healthCheckerMock.EXPECT().ConductHealthcheckForSingleApp(sampleAppName).Return(unhealthyReport)
 	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(sampleAppDir, []byte("sample content")).Return(errors.New("some other error"))
 
 	defer func() {
@@ -159,8 +156,8 @@ func TestUpdater_PerformUpdate_GetDockerComposeFileContentFails(t *testing.T) {
 	assert.False(t, updateReport.WasSuccessful)
 	assert.Equal(t, 1, len(updateReport.AppUpdateReport))
 	actualReport := updateReport.AppUpdateReport[0]
-	expectedReport := getEmptyReport()
-	expectedReport.UpdateErrorMessage = "Failed to get docker-compose file content: some error"
+	expectedReport := getEmptyUpdateReport()
+	expectedReport.UpdateErrorMessage = "Failed to read docker-compose.yml: some error"
 	assert.Equal(t, expectedReport, actualReport)
 }
 

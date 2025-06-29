@@ -5,6 +5,7 @@ type Updater struct {
 	appUpdater         SingleAppUpdater
 	healthChecker      HealthChecker
 	dockerHubClient    DockerHubClient
+	updateApplier      UpdateApplier
 }
 type UpdateReport struct {
 	WasSuccessful   bool

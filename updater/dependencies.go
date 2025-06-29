@@ -9,6 +9,7 @@ type FileSystemOperator interface {
 
 	GetDockerComposeFileContent(appDir string) ([]byte, error)
 	WriteDockerComposeFileContent(appDir string, content []byte) error
+	WriteServiceUpdatesIntoComposeFile(appDir string, serviceUpdates []ServiceUpdate) error
 }
 
 //go:generate mockery
@@ -24,7 +25,7 @@ type EndpointChecker interface {
 
 //go:generate mockery
 type SingleAppUpdater interface {
-	update(appDir string) (*AppUpdate, error)
+	fetchAppUpdate(appDir string) (*AppUpdate, error)
 }
 
 //go:generate mockery

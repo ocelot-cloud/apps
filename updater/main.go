@@ -47,10 +47,10 @@ var rootCmd = &cobra.Command{
 
 // TODO I need more logging.
 var updateCmd = &cobra.Command{
-	Use:   "update",
+	Use:   "fetchAppUpdate",
 	Short: "updates all apps and performs health checks",
 	Run: func(cmd *cobra.Command, args []string) {
-		logger.Info("starting update process")
+		logger.Info("starting fetchAppUpdate process")
 		updateReport, err := deps.Updater.PerformUpdate()
 		if err != nil {
 			tr.ColoredPrintln("error: %v", err)

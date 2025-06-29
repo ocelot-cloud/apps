@@ -10,6 +10,7 @@ var (
 	healthChecker          HealthChecker
 	fileSystemOperatorMock *FileSystemOperatorMock
 	endpointCheckerMock    *EndpointCheckerMock
+	updateApplierMock      *UpdateApplierMock
 )
 
 func setupHealthChecker(t *testing.T) {

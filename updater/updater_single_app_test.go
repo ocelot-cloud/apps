@@ -29,7 +29,7 @@ func TestAppUpdaterSuccess(t *testing.T) {
 	}, nil)
 	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
 
-	appUpdate, err := singleAppUpdaterReal.update(sampleAppDir)
+	appUpdate, err := singleAppUpdaterReal.fetchAppUpdate(sampleAppDir)
 	assert.Nil(t, err)
 	assert.True(t, appUpdate.WasUpdateFound)
 	assert.Equal(t, 1, len(appUpdate.ServiceUpdates))
@@ -45,7 +45,7 @@ func TestAppUpdater_GetImagesOfAppFails(t *testing.T) {
 
 	singleAppUpdateFileSystemOperatorMock.EXPECT().GetAppServices(sampleAppDir).Return(nil, errors.New("some error"))
 
-	_, err := singleAppUpdaterReal.update(sampleAppDir)
+	_, err := singleAppUpdaterReal.fetchAppUpdate(sampleAppDir)
 	assert.Equal(t, "some error", err.Error())
 }
 
@@ -58,7 +58,7 @@ func TestAppUpdater_ListImageTagsFails(t *testing.T) {
 	}, nil)
 	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return(nil, errors.New("some error"))
 
-	_, err := singleAppUpdaterReal.update(sampleAppDir)
+	_, err := singleAppUpdaterReal.fetchAppUpdate(sampleAppDir)
 	assert.Equal(t, "some error", err.Error())
 }
 
@@ -71,7 +71,7 @@ func TestAppUpdater_SuccessButNoNewUpdateFound(t *testing.T) {
 	}, nil)
 	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0.0"}, nil)
 
-	appUpdate, err := singleAppUpdaterReal.update(sampleAppDir)
+	appUpdate, err := singleAppUpdaterReal.fetchAppUpdate(sampleAppDir)
 	assert.Nil(t, err)
 	assert.False(t, appUpdate.WasUpdateFound)
 	assert.Equal(t, 0, len(appUpdate.ServiceUpdates))
@@ -86,6 +86,6 @@ func TestAppUpdater_FilterLatestImageTagFails(t *testing.T) {
 	}, nil)
 	dockerHubClientMock.EXPECT().listImageTags("ocelot/sampleapp").Return([]string{"1.0.0", "1.0.1"}, nil)
 
-	_, err := singleAppUpdaterReal.update(sampleAppDir)
+	_, err := singleAppUpdaterReal.fetchAppUpdate(sampleAppDir)
 	assert.Equal(t, "integer conversion failed", err.Error())
 }

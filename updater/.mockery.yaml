@@ -37,3 +37,9 @@ packages:
           filename: health_checker_mock.go
           structname: HealthCheckerMock
           pkgname: main
+      UpdateApplier:
+        config:
+          dir: .
+          filename: update_applier_mock.go
+          structname: UpdateApplierMock
+          pkgname: main
