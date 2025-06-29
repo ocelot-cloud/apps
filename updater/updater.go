@@ -69,7 +69,8 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 
 	appUpdate, err := u.updateApplier.ApplyUpdate(appDir)
 	if err != nil {
-		u.resetDockerComposeYamlToInitialContent(appDir, originalContent) // TODO ensure tests fail with this
+		// TODO !! block not covered yet
+		u.resetDockerComposeYamlToInitialContent(appDir, originalContent)
 		report := getEmptyUpdateReport()
 		report.UpdateErrorMessage = "Failed to apply update to docker-compose.yml: " + err.Error()
 		return report
@@ -82,9 +83,8 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	}
 
 	appHealthReport := u.healthChecker.ConductHealthcheckForSingleApp(app)
-	// TODO if app health report is not successful, I should reset the docker-compose file to the original content
 	if !appHealthReport.Healthy {
-		u.resetDockerComposeYamlToInitialContent(appDir, originalContent) // TODO ensure tests fail with this
+		u.resetDockerComposeYamlToInitialContent(appDir, originalContent)
 		report := getEmptyUpdateReport()
 		report.UpdateErrorMessage = "App health check failed: " + appHealthReport.ErrorMessage
 		return report
