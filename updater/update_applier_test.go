@@ -1,6 +1,9 @@
 package main
 
-import "testing"
+import (
+	"github.com/ocelot-cloud/shared/assert"
+	"testing"
+)
 
 var (
 	updateApplier UpdateApplier
@@ -10,7 +13,13 @@ func TestAppUpdater_Success(t *testing.T) {
 	setup(t)
 	defer assertAppUpdaterMockExpectations(t)
 
-	//updateApplier.ApplyUpdate(sampleAppDir)
+	sampleUpdate := getSampleAppUpdate()
+	appUpdateFetcherMock.EXPECT().Fetch(sampleAppDir).Return(sampleUpdate, nil)
+	fileSystemOperatorMock.EXPECT().WriteServiceUpdatesIntoComposeFile(sampleAppDir, sampleUpdate.ServiceUpdates).Return(nil)
+
+	actualUpdate, err := updateApplier.ApplyUpdate(sampleAppDir)
+	assert.Nil(t, err)
+	assert.Equal(t, sampleUpdate, actualUpdate)
 }
 
 func setup(t *testing.T) {
