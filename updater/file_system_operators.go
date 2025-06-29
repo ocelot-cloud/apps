@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -25,8 +26,38 @@ type AppYaml struct {
 type FileSystemOperatorImpl struct{}
 
 func (f FileSystemOperatorImpl) GetAppServices(appDir string) ([]Service, error) {
-	//TODO implement me
-	panic("implement me")
+	path := filepath.Join(appDir, "docker-compose.yml")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var doc map[string]interface{}
+	if err := yaml.Unmarshal(data, &doc); err != nil {
+		return nil, err
+	}
+	svcMap, ok := doc["services"].(map[string]interface{})
+	if !ok {
+		return nil, errors.New("services key missing")
+	}
+	var services []Service
+	for name, raw := range svcMap {
+		svc, ok := raw.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		imageStr, ok := svc["image"].(string)
+		if !ok {
+			continue
+		}
+		parts := strings.SplitN(imageStr, ":", 2)
+		image := parts[0]
+		tag := ""
+		if len(parts) == 2 {
+			tag = parts[1]
+		}
+		services = append(services, Service{Name: name, Image: image, Tag: tag})
+	}
+	return services, nil
 }
 
 func (f FileSystemOperatorImpl) GetListOfApps(appsDir string) ([]string, error) {
