@@ -1,34 +1,25 @@
 package main
 
-//go:generate mockery
-type UpdateApplier interface {
-	ApplyUpdate(appDir string) (*AppUpdate, error)
+type UpdateApplierImpl struct {
+	appUpdater         SingleAppUpdater
+	fileSystemOperator FileSystemOperator
 }
 
-type UpdateApplierImpl struct{}
-
+// TODO write tests for this
+// TODO NewUpdateApplier function should take dependencies as parameters
 func (u *UpdateApplierImpl) ApplyUpdate(appDir string) (*AppUpdate, error) {
-	/* TODO !!
-	appUpdate, err = u.appUpdater.fetchAppUpdate(appDir)
+	appUpdate, err := u.appUpdater.fetchAppUpdate(appDir)
 	if err != nil {
-		report := getEmptyUpdateReport()
-		report.UpdateErrorMessage = "Failed to fetchAppUpdate app: " + err.Error()
-		return report
+		return nil, err
 	}
 
 	if !appUpdate.WasUpdateFound {
-		report := getEmptyUpdateReport()
-		report.WasSuccessful = true
-		return report
+		return appUpdate, nil
 	}
 
 	err = u.fileSystemOperator.WriteServiceUpdatesIntoComposeFile(appDir, appUpdate.ServiceUpdates)
 	if err != nil {
-		u.resetDockerComposeYamlToInitialContent(appDir, originalContent) // TODO ensure tests fail with this
-		report := getEmptyUpdateReport()
-		report.UpdateErrorMessage = "Failed to apply app fetchAppUpdate to docker-compose.yml: " + err.Error()
-		return report
+		return nil, err
 	}
-	*/
-	return nil, nil
+	return appUpdate, nil
 }

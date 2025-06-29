@@ -16,10 +16,9 @@ func Initialize() (Deps, error) {
 		NewFileSystemOperator,
 		NewHealthChecker,
 		NewEndpointChecker,
-		// TODO deps will be used by other modules
-		// TODO NewSingleAppUpdater,
-		// TODO NewDockerHubClient,
-		// TODO NewFileSystemUpdateOperator,
+		NewSingleAppUpdater,
+		NewDockerHubClient,
+		NewFileSystemUpdateOperator,
 		NewUpdateApplier,
 		wire.Struct(new(Deps), "*"),
 	)
@@ -64,6 +63,11 @@ func NewFileSystemUpdateOperator() SingleAppUpdateFileSystemOperator {
 	return &SingleAppUpdateFileSystemOperatorImpl{}
 }
 
-func NewUpdateApplier() UpdateApplier {
-	return &UpdateApplierImpl{}
+// TODO can FileSystemOperator be separated?
+
+func NewUpdateApplier(appUpdater SingleAppUpdater, fileSystemOperator FileSystemOperator) UpdateApplier {
+	return &UpdateApplierImpl{
+		appUpdater:         appUpdater,
+		fileSystemOperator: fileSystemOperator,
+	}
 }

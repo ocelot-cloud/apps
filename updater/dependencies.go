@@ -38,3 +38,8 @@ type HealthChecker interface {
 type DockerHubClient interface {
 	listImageTags(image string) ([]string, error)
 }
+
+//go:generate mockery
+type UpdateApplier interface {
+	ApplyUpdate(appDir string) (*AppUpdate, error)
+}
