@@ -58,10 +58,10 @@ func (u *Updater) PerformUpdate() (*UpdateReport, error) {
 func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	appDir := appsDir + "/" + app
 
-	// TODO !! I need to ensure at the beginning that there are no git diffs at least within the appsDir, because potential broken but up to date apps will not be healthchecked
+	// TODO I need to ensure at the beginning that there are no git diffs at least within the appsDir, because potential broken but up to date apps will not be healthchecked
 	originalContent, err := u.fileSystemOperator.GetDockerComposeFileContent(appDir)
 	if err != nil {
-		report := getEmptyUpdateReport()
+		report := getEmptyAppUpdateReport()
 		report.UpdateErrorMessage = "Failed to read docker-compose.yml: " + err.Error()
 		return report
 	}
@@ -70,13 +70,13 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	if err != nil {
 		// TODO !! block not covered yet
 		u.resetDockerComposeYamlToInitialContent(appDir, originalContent)
-		report := getEmptyUpdateReport()
+		report := getEmptyAppUpdateReport()
 		report.UpdateErrorMessage = "Failed to apply update to docker-compose.yml: " + err.Error()
 		return report
 	}
 
 	if !appUpdate.WasUpdateFound {
-		report := getEmptyUpdateReport()
+		report := getEmptyAppUpdateReport()
 		report.WasSuccessful = true
 		return report
 	}
@@ -84,7 +84,7 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	appHealthReport := u.healthChecker.ConductHealthcheckForSingleApp(app)
 	if !appHealthReport.Healthy {
 		u.resetDockerComposeYamlToInitialContent(appDir, originalContent)
-		report := getEmptyUpdateReport()
+		report := getEmptyAppUpdateReport()
 		report.UpdateErrorMessage = "App health check failed: " + appHealthReport.ErrorMessage
 		return report
 	}
@@ -97,7 +97,7 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 	}
 }
 
-func getEmptyUpdateReport() AppUpdateReport {
+func getEmptyAppUpdateReport() AppUpdateReport {
 	return AppUpdateReport{
 		AppName:            "sampleapp",
 		WasSuccessful:      false,

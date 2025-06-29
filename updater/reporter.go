@@ -23,7 +23,6 @@ func reportHealth(h HealthCheckReport) string {
 	return builder.String()
 }
 
-// TODO make pretty
 func reportUpdate(updateReport UpdateReport) string {
 	var builder strings.Builder
 	fmt.Fprintf(&builder, "\nUpdate Report:\n\n")

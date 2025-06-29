@@ -107,7 +107,7 @@ func TestUpdater_PerformUpdateSuccessfullyWithoutNewTag(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, report.WasSuccessful)
 	actualReport := report.AppUpdateReport[0]
-	expectedReport := getEmptyUpdateReport()
+	expectedReport := getEmptyAppUpdateReport()
 	expectedReport.WasSuccessful = true
 	assert.Equal(t, expectedReport, actualReport)
 }
@@ -148,7 +148,7 @@ func TestUpdater_PerformUpdate_GetDockerComposeFileContentFails(t *testing.T) {
 	assert.False(t, updateReport.WasSuccessful)
 	assert.Equal(t, 1, len(updateReport.AppUpdateReport))
 	actualReport := updateReport.AppUpdateReport[0]
-	expectedReport := getEmptyUpdateReport()
+	expectedReport := getEmptyAppUpdateReport()
 	expectedReport.UpdateErrorMessage = "Failed to read docker-compose.yml: some error"
 	assert.Equal(t, expectedReport, actualReport)
 }
@@ -161,4 +161,25 @@ func TestUpdater_PerformUpdate_GetListOfAppsFails(t *testing.T) {
 
 	_, err := updater.PerformUpdate()
 	assert.Equal(t, "some error", err.Error())
+}
+
+func TestUpdater_ApplyUpdateFails(t *testing.T) {
+	setupUpdater(t)
+	defer assertUpdaterMockExpectations(t)
+
+	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{sampleAppName}, nil)
+	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return([]byte("sample content"), nil)
+	updateApplierMock.EXPECT().ApplyUpdate(sampleAppDir).Return(nil, errors.New("some error"))
+	fileSystemOperatorMock.EXPECT().WriteDockerComposeFileContent(sampleAppDir, []byte("sample content")).Return(nil)
+
+	expectedAppReport := getEmptyAppUpdateReport()
+	expectedAppReport.UpdateErrorMessage = "Failed to apply update to docker-compose.yml: some error"
+	expectedReport := UpdateReport{
+		WasSuccessful:   false,
+		AppUpdateReport: []AppUpdateReport{expectedAppReport},
+	}
+
+	actualReport, err := updater.PerformUpdate()
+	assert.Nil(t, err)
+	assert.Equal(t, expectedReport, *actualReport)
 }
