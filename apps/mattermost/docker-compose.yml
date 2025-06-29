@@ -1,38 +1,36 @@
 services:
-  mattermost:
-    depends_on:
-      - postgres
-    image: mattermost/mattermost-team-edition:10.7.0
-    container_name: ocelotcloud_mattermost_mattermost
-    volumes:
-      - ocelotcloud_mattermost_config:/mattermost/config:rw
-      - ocelotcloud_mattermost_data:/mattermost/data:rw
-      - ocelotcloud_mattermost_logs:/mattermost/logs:rw
-      - ocelotcloud_mattermost_plugins:/mattermost/plugins:rw
-      - ocelotcloud_mattermost_client_plugins:/mattermost/client/plugins:rw
-      - ocelotcloud_mattermost_bleve_index:/mattermost/bleve-indexes:rw
-    environment:
-      - TZ=UTC
-      - MM_SQLSETTINGS_DRIVERNAME=postgres
-      - MM_SQLSETTINGS_DATASOURCE=postgres://mattermost:password@ocelotcloud_mattermost_postgres:5432/mattermost?sslmode=disable&connect_timeout=10
-      - MM_BLEVESETTINGS_INDEXDIR=/mattermost/bleve-indexes
-
-  postgres:
-    image: postgres:17.4-alpine
-    container_name: ocelotcloud_mattermost_postgres
-    volumes:
-      - ocelotcloud_mattermost_postgres_data:/var/lib/postgresql/data
-    environment:
-      - TZ=UTC
-      - POSTGRES_USER=mattermost
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=mattermost
-
+    mattermost:
+        container_name: ocelotcloud_mattermost_mattermost
+        depends_on:
+            - postgres
+        environment:
+            - TZ=UTC
+            - MM_SQLSETTINGS_DRIVERNAME=postgres
+            - MM_SQLSETTINGS_DATASOURCE=postgres://mattermost:password@ocelotcloud_mattermost_postgres:5432/mattermost?sslmode=disable&connect_timeout=10
+            - MM_BLEVESETTINGS_INDEXDIR=/mattermost/bleve-indexes
+        image: mattermost/mattermost-team-edition:10.9.2
+        volumes:
+            - ocelotcloud_mattermost_config:/mattermost/config:rw
+            - ocelotcloud_mattermost_data:/mattermost/data:rw
+            - ocelotcloud_mattermost_logs:/mattermost/logs:rw
+            - ocelotcloud_mattermost_plugins:/mattermost/plugins:rw
+            - ocelotcloud_mattermost_client_plugins:/mattermost/client/plugins:rw
+            - ocelotcloud_mattermost_bleve_index:/mattermost/bleve-indexes:rw
+    postgres:
+        container_name: ocelotcloud_mattermost_postgres
+        environment:
+            - TZ=UTC
+            - POSTGRES_USER=mattermost
+            - POSTGRES_PASSWORD=password
+            - POSTGRES_DB=mattermost
+        image: postgres:17.5-alpine
+        volumes:
+            - ocelotcloud_mattermost_postgres_data:/var/lib/postgresql/data
 volumes:
-  ocelotcloud_mattermost_postgres_data:
-  ocelotcloud_mattermost_config:
-  ocelotcloud_mattermost_data:
-  ocelotcloud_mattermost_logs:
-  ocelotcloud_mattermost_plugins:
-  ocelotcloud_mattermost_client_plugins:
-  ocelotcloud_mattermost_bleve_index:
+    ocelotcloud_mattermost_bleve_index: null
+    ocelotcloud_mattermost_client_plugins: null
+    ocelotcloud_mattermost_config: null
+    ocelotcloud_mattermost_data: null
+    ocelotcloud_mattermost_logs: null
+    ocelotcloud_mattermost_plugins: null
+    ocelotcloud_mattermost_postgres_data: null
