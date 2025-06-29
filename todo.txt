@@ -16,6 +16,7 @@ features:
   * Usage Guide
   * Dockerhub Account recommendation for many apps
   * App Store account
+* somewhere should me mentioned how this tools works, probably on the website under "app store"; add this as community feature on the overview "features" page
 
 * add apps?
   * take care of to-do folder: either make it a production app or remove it
