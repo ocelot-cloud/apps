@@ -19,6 +19,7 @@ func (u *HealthCheckerImpl) PerformHealthChecks() (*HealthCheckReport, error) {
 }
 
 func getAppHealthReportWithError(app, errorMessage string, err error) AppHealthReport {
+	logger.Error("Health check for app %s failed: %s - %s", app, errorMessage, err)
 	return AppHealthReport{
 		AppName:      app,
 		Healthy:      false,
