@@ -5,7 +5,6 @@ type UpdateApplierImpl struct {
 	fileSystemOperator FileSystemOperator
 }
 
-// TODO write tests for this
 func (u *UpdateApplierImpl) ApplyUpdate(appDir string) (*AppUpdate, error) {
 	appUpdate, err := u.appUpdater.Fetch(appDir)
 	if err != nil {
