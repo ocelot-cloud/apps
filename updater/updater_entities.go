@@ -37,7 +37,7 @@ type Service struct {
 	Tag   string
 }
 
-type SingleAppUpdaterImpl struct {
+type AppUpdateFetcherImpl struct {
 	fsOperator      FileSystemOperator
 	dockerHubClient DockerHubClient
 }

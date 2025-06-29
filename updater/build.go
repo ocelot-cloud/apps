@@ -37,7 +37,7 @@ func NewFileSystemOperator() FileSystemOperator {
 }
 
 func NewSingleAppUpdater(fs FileSystemOperator, client DockerHubClient) AppUpdateFetcher {
-	return &SingleAppUpdaterImpl{
+	return &AppUpdateFetcherImpl{
 		fsOperator:      fs,
 		dockerHubClient: client,
 	}

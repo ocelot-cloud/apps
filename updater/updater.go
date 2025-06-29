@@ -1,6 +1,6 @@
 package main
 
-func (a *SingleAppUpdaterImpl) Fetch(appDir string) (*AppUpdate, error) {
+func (a *AppUpdateFetcherImpl) Fetch(appDir string) (*AppUpdate, error) {
 	services, err := a.fsOperator.GetAppServices(appDir)
 	if err != nil {
 		return nil, err
