@@ -7,8 +7,8 @@ type UpdateApplier interface {
 
 type UpdateApplierImpl struct{}
 
-/* TODO !!
-func (u *UpdateApplierImpl) ApplyUpdate(appDir string) error {
+func (u *UpdateApplierImpl) ApplyUpdate(appDir string) (*AppUpdate, error) {
+	/* TODO !!
 	appUpdate, err = u.appUpdater.fetchAppUpdate(appDir)
 	if err != nil {
 		report := getEmptyUpdateReport()
@@ -29,5 +29,6 @@ func (u *UpdateApplierImpl) ApplyUpdate(appDir string) error {
 		report.UpdateErrorMessage = "Failed to apply app fetchAppUpdate to docker-compose.yml: " + err.Error()
 		return report
 	}
+	*/
+	return nil, nil
 }
-*/

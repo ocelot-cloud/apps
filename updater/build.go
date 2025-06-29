@@ -19,17 +19,18 @@ func Initialize() (Deps, error) {
 		NewDockerHubClient,
 		NewEndpointChecker,
 		NewFileSystemUpdateOperator,
+		NewUpdateApplier,
 		wire.Struct(new(Deps), "*"),
 	)
 	return Deps{}, nil
 }
 
-func NewUpdater(fs FileSystemOperator, appUpdater SingleAppUpdater, checker HealthChecker, client DockerHubClient) *Updater {
+func NewUpdater(fs FileSystemOperator, appUpdater SingleAppUpdater, checker HealthChecker, applier UpdateApplier) *Updater {
 	return &Updater{
 		fileSystemOperator: fs,
-		appUpdater:         appUpdater,
+		appUpdater:         appUpdater, // TODO needed?
 		healthChecker:      checker,
-		dockerHubClient:    client,
+		updateApplier:      applier,
 	}
 }
 
@@ -61,4 +62,8 @@ func NewEndpointChecker() EndpointChecker {
 
 func NewFileSystemUpdateOperator() SingleAppUpdateFileSystemOperator {
 	return &SingleAppUpdateFileSystemOperatorImpl{}
+}
+
+func NewUpdateApplier() UpdateApplier {
+	return &UpdateApplierImpl{}
 }

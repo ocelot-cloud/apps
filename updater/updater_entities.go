@@ -4,7 +4,6 @@ type Updater struct {
 	fileSystemOperator FileSystemOperator
 	appUpdater         SingleAppUpdater
 	healthChecker      HealthChecker
-	dockerHubClient    DockerHubClient
 	updateApplier      UpdateApplier
 }
 type UpdateReport struct {

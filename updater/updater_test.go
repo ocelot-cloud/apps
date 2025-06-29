@@ -25,17 +25,15 @@ var (
 func setupUpdater(t *testing.T) {
 	fileSystemOperatorMock = NewFileSystemOperatorMock(t)
 	singleAppUpdaterMock = NewSingleAppUpdaterMock(t)
-	dockerHubClientMock = NewDockerHubClientMock(t)
 	healthCheckerMock = NewHealthCheckerMock(t)
 	updateApplierMock = NewUpdateApplierMock(t)
 
-	updater = &Updater{
-		fileSystemOperator: fileSystemOperatorMock,
-		appUpdater:         singleAppUpdaterMock,
-		dockerHubClient:    dockerHubClientMock,
-		healthChecker:      healthCheckerMock,
-		updateApplier:      updateApplierMock, // TODO !! I need to adapt the provider so that this dependency is wired
-	}
+	updater = NewUpdater(
+		fileSystemOperatorMock,
+		singleAppUpdaterMock,
+		healthCheckerMock,
+		updateApplierMock,
+	)
 }
 
 func assertUpdaterMockExpectations(t *testing.T) {
