@@ -46,7 +46,7 @@ var rootCmd = &cobra.Command{
 }
 
 var updateCmd = &cobra.Command{
-	Use:   "Fetch",
+	Use:   "update",
 	Short: "updates all apps and performs health checks",
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.Info("starting Fetch process")
