@@ -8,8 +8,8 @@ import (
 
 func equalYAML(t *testing.T, a, b []byte) {
 	var v1, v2 interface{}
-	yaml.Unmarshal(a, &v1)
-	yaml.Unmarshal(b, &v2)
+	assert.Nil(t, yaml.Unmarshal(a, &v1))
+	assert.Nil(t, yaml.Unmarshal(b, &v2))
 	assert.Equal(t, v2, v1)
 }
 
