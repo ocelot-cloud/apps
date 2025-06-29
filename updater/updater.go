@@ -68,7 +68,6 @@ func (u *Updater) conductUpdateForSingleApp(app string) AppUpdateReport {
 
 	appUpdate, err := u.updateApplier.ApplyUpdate(appDir)
 	if err != nil {
-		// TODO !! block not covered yet
 		u.resetDockerComposeYamlToInitialContent(appDir, originalContent)
 		report := getEmptyAppUpdateReport()
 		report.UpdateErrorMessage = "Failed to apply update to docker-compose.yml: " + err.Error()
