@@ -17,8 +17,6 @@ var (
 	singleAppUpdaterReal *SingleAppUpdaterImpl
 	dockerHubClientMock  *DockerHubClientMock
 	appUpdateFetcherMock *AppUpdateFetcherMock
-
-	singleAppUpdateFileSystemOperatorMock *SingleAppUpdateFileSystemOperatorMock
 )
 
 func setupUpdater(t *testing.T) {

@@ -18,7 +18,6 @@ func Initialize() (Deps, error) {
 		NewEndpointChecker,
 		NewSingleAppUpdater,
 		NewDockerHubClient,
-		NewFileSystemUpdateOperator,
 		NewUpdateApplier,
 		wire.Struct(new(Deps), "*"),
 	)
@@ -37,7 +36,7 @@ func NewFileSystemOperator() FileSystemOperator {
 	return &FileSystemOperatorImpl{}
 }
 
-func NewSingleAppUpdater(fs SingleAppUpdateFileSystemOperator, client DockerHubClient) AppUpdateFetcher {
+func NewSingleAppUpdater(fs FileSystemOperator, client DockerHubClient) AppUpdateFetcher {
 	return &SingleAppUpdaterImpl{
 		fsOperator:      fs,
 		dockerHubClient: client,
@@ -58,12 +57,6 @@ func NewDockerHubClient() DockerHubClient {
 func NewEndpointChecker() EndpointChecker {
 	return &EndpointCheckerImpl{}
 }
-
-func NewFileSystemUpdateOperator() SingleAppUpdateFileSystemOperator {
-	return &SingleAppUpdateFileSystemOperatorImpl{}
-}
-
-// TODO can FileSystemOperator be separated?
 
 func NewUpdateApplier(appUpdater AppUpdateFetcher, fileSystemOperator FileSystemOperator) UpdateApplier {
 	return &UpdateApplierImpl{

@@ -10,10 +10,6 @@ type FileSystemOperator interface {
 	GetDockerComposeFileContent(appDir string) ([]byte, error)
 	WriteDockerComposeFileContent(appDir string, content []byte) error
 	WriteServiceUpdatesIntoComposeFile(appDir string, serviceUpdates []ServiceUpdate) error
-}
-
-//go:generate mockery
-type SingleAppUpdateFileSystemOperator interface {
 	GetAppServices(appDir string) ([]Service, error)
 }
 

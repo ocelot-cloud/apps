@@ -38,6 +38,6 @@ type Service struct {
 }
 
 type SingleAppUpdaterImpl struct {
-	fsOperator      SingleAppUpdateFileSystemOperator
+	fsOperator      FileSystemOperator
 	dockerHubClient DockerHubClient
 }

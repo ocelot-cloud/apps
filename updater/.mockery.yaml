@@ -25,12 +25,6 @@ packages:
           filename: updater_single_app_updater_mock.go
           structname: AppUpdateFetcherMock
           pkgname: main
-      SingleAppUpdateFileSystemOperator:
-        config:
-          dir: .
-          filename: updater_single_app_fs_operator_mock.go
-          structname: SingleAppUpdateFileSystemOperatorMock
-          pkgname: main
       HealthChecker:
         config:
           dir: .

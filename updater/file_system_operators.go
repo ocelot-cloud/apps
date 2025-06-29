@@ -24,6 +24,11 @@ type AppYaml struct {
 
 type FileSystemOperatorImpl struct{}
 
+func (f FileSystemOperatorImpl) GetAppServices(appDir string) ([]Service, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (f FileSystemOperatorImpl) GetListOfApps(appsDir string) ([]string, error) {
 	ents, err := os.ReadDir(appsDir)
 	if err != nil {
