@@ -2,7 +2,6 @@ package main
 
 type Updater struct {
 	fileSystemOperator FileSystemOperator
-	appUpdater         SingleAppUpdater
 	healthChecker      HealthChecker
 	updateApplier      UpdateApplier
 }

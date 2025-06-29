@@ -14,21 +14,21 @@ func Initialize() (Deps, error) {
 	wire.Build(
 		NewUpdater,
 		NewFileSystemOperator,
-		NewSingleAppUpdater,
 		NewHealthChecker,
-		NewDockerHubClient,
 		NewEndpointChecker,
-		NewFileSystemUpdateOperator,
+		// TODO deps will be used by other modules
+		// TODO NewSingleAppUpdater,
+		// TODO NewDockerHubClient,
+		// TODO NewFileSystemUpdateOperator,
 		NewUpdateApplier,
 		wire.Struct(new(Deps), "*"),
 	)
 	return Deps{}, nil
 }
 
-func NewUpdater(fs FileSystemOperator, appUpdater SingleAppUpdater, checker HealthChecker, applier UpdateApplier) *Updater {
+func NewUpdater(fs FileSystemOperator, checker HealthChecker, applier UpdateApplier) *Updater {
 	return &Updater{
 		fileSystemOperator: fs,
-		appUpdater:         appUpdater, // TODO needed?
 		healthChecker:      checker,
 		updateApplier:      applier,
 	}

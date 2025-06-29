@@ -24,13 +24,11 @@ var (
 // TODO these are quite a lot of mocks, do I still need all of them?
 func setupUpdater(t *testing.T) {
 	fileSystemOperatorMock = NewFileSystemOperatorMock(t)
-	singleAppUpdaterMock = NewSingleAppUpdaterMock(t)
 	healthCheckerMock = NewHealthCheckerMock(t)
 	updateApplierMock = NewUpdateApplierMock(t)
 
 	updater = NewUpdater(
 		fileSystemOperatorMock,
-		singleAppUpdaterMock,
 		healthCheckerMock,
 		updateApplierMock,
 	)
@@ -38,10 +36,8 @@ func setupUpdater(t *testing.T) {
 
 func assertUpdaterMockExpectations(t *testing.T) {
 	fileSystemOperatorMock.AssertExpectations(t)
-	dockerHubClientMock.AssertExpectations(t)
 	healthCheckerMock.AssertExpectations(t)
 	updateApplierMock.AssertExpectations(t)
-	singleAppUpdaterMock.AssertExpectations(t)
 }
 
 func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
@@ -52,7 +48,6 @@ func TestUpdater_PerformUpdateSuccessfully(t *testing.T) {
 	fileSystemOperatorMock.EXPECT().GetListOfApps(appsDir).Return([]string{sampleAppName}, nil)
 	fileSystemOperatorMock.EXPECT().GetDockerComposeFileContent(sampleAppDir).Return([]byte("sample content"), nil)
 	updateApplierMock.EXPECT().ApplyUpdate(sampleAppDir).Return(appUpdate, nil)
-
 	healthCheckerMock.EXPECT().ConductHealthcheckForSingleApp(sampleAppName).Return(getHealthyReport())
 
 	report, err := updater.PerformUpdate()
