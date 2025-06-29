@@ -129,6 +129,14 @@ func (f FileSystemOperatorImpl) WriteDockerComposeFileContent(appDir string, con
 }
 
 func (f FileSystemOperatorImpl) WriteServiceUpdatesIntoComposeFile(appDir string, serviceUpdates []ServiceUpdate) error {
-	// TODO
-	return nil
+	path := filepath.Join(appDir, "docker-compose.yml")
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	updated, err := UpdateComposeTags(data, serviceUpdates)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(path, updated, 0600)
 }

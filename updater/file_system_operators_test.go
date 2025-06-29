@@ -4,6 +4,7 @@ package main
 
 import (
 	tr "github.com/ocelot-cloud/task-runner"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -92,4 +93,28 @@ services:
 	require.NoError(t, fsOperator.ShutdownStackAndDeleteComposeFile(pathToInjectedComposeYaml))
 	_, err = os.Stat(pathToInjectedComposeYaml)
 	require.Error(t, err)
+}
+
+func TestWriteServiceUpdatesIntoComposeFile(t *testing.T) {
+	appDir := t.TempDir()
+	path := filepath.Join(appDir, "docker-compose.yml")
+	in := `
+services:
+  web:
+    image: nginx:1.24
+`
+	want := `
+services:
+  web:
+    image: nginx:1.25
+`
+	os.WriteFile(path, []byte(in), 0600)
+	fs := FileSystemOperatorImpl{}
+	err := fs.WriteServiceUpdatesIntoComposeFile(appDir, []ServiceUpdate{
+		{ServiceName: "web", OldTag: "1.24", NewTag: "1.25"},
+	})
+	assert.NoError(t, err)
+	out, err := os.ReadFile(path)
+	assert.NoError(t, err)
+	equalYAML(t, out, []byte(want))
 }
