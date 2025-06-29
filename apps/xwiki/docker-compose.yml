@@ -1,28 +1,26 @@
 services:
-  xwiki:
-    image: "xwiki:17.2.0-postgres-tomcat"
-    container_name: ocelotcloud_xwiki_xwiki
-    depends_on:
-      - db
-    environment:
-      - DB_USER=xwiki
-      - DB_PASSWORD=password
-      - DB_HOST=ocelotcloud_xwiki_db
-    volumes:
-      - ocelotcloud_xwiki_xwiki:/usr/local/xwiki
-
-  db:
-    image: "postgres:17.4-alpine"
-    container_name: ocelotcloud_xwiki_db
-    volumes:
-      - ocelotcloud_xwiki_postgres:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_ROOT_PASSWORD=password
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_USER=xwiki
-      - POSTGRES_DB=xwiki
-      - POSTGRES_INITDB_ARGS="--encoding=UTF8"
-
+    db:
+        container_name: ocelotcloud_xwiki_db
+        environment:
+            - POSTGRES_ROOT_PASSWORD=password
+            - POSTGRES_PASSWORD=password
+            - POSTGRES_USER=xwiki
+            - POSTGRES_DB=xwiki
+            - POSTGRES_INITDB_ARGS="--encoding=UTF8"
+        image: postgres:17.5-alpine
+        volumes:
+            - ocelotcloud_xwiki_postgres:/var/lib/postgresql/data
+    xwiki:
+        container_name: ocelotcloud_xwiki_xwiki
+        depends_on:
+            - db
+        environment:
+            - DB_USER=xwiki
+            - DB_PASSWORD=password
+            - DB_HOST=ocelotcloud_xwiki_db
+        image: xwiki:17.4.1-postgres-tomcat
+        volumes:
+            - ocelotcloud_xwiki_xwiki:/usr/local/xwiki
 volumes:
-  ocelotcloud_xwiki_xwiki:
-  ocelotcloud_xwiki_postgres:
+    ocelotcloud_xwiki_postgres: null
+    ocelotcloud_xwiki_xwiki: null

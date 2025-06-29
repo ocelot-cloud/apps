@@ -16,9 +16,9 @@ func reportHealth(h HealthCheckReport) string {
 		}
 	}
 	if h.AllAppsHealthy {
-		builder.WriteString("\nSummary: All apps are healthy\n")
+		builder.WriteString("\nsummary: all apps are healthy\n")
 	} else {
-		builder.WriteString("\nSummary: Some apps are unhealthy\n")
+		builder.WriteString("\nsummary: some apps are unhealthy\n")
 	}
 	return builder.String()
 }
@@ -30,9 +30,9 @@ func reportUpdate(updateReport UpdateReport) string {
 		addUpdateReportLine(appUpdateReport, &builder)
 	}
 	if updateReport.WasSuccessful {
-		fmt.Fprintf(&builder, "\nSummary: Update successful\n")
+		fmt.Fprintf(&builder, "\nsummary: update successful\n")
 	} else {
-		fmt.Fprintf(&builder, "\nSummary: Update failed\n")
+		fmt.Fprintf(&builder, "\nsummary: update failed\n")
 	}
 	return builder.String()
 }
@@ -41,12 +41,12 @@ func addUpdateReportLine(a AppUpdateReport, b *strings.Builder) {
 	switch {
 	case !a.WasSuccessful:
 		if a.AppUpdates != nil && len(a.AppUpdates.ServiceUpdates) > 0 && a.AppUpdates.ErrorMessage != "" {
-			fmt.Fprintf(b, "- %s: service Fetch error - %s\n", a.AppName, a.AppUpdates.ErrorMessage)
+			fmt.Fprintf(b, "- %s: service update error - %s\n", a.AppName, a.AppUpdates.ErrorMessage)
 		} else {
-			fmt.Fprintf(b, "- %s: Fetch failed - %s\n", a.AppName, a.UpdateErrorMessage)
+			fmt.Fprintf(b, "- %s: update failed - %s\n", a.AppName, a.UpdateErrorMessage)
 		}
 	case !a.WasUpdateAvailable:
-		fmt.Fprintf(b, "- %s: no Fetch available\n", a.AppName)
+		fmt.Fprintf(b, "- %s: no update available\n", a.AppName)
 	default:
 		parts := make([]string, 0, len(a.AppUpdates.ServiceUpdates))
 		for _, s := range a.AppUpdates.ServiceUpdates {
@@ -55,9 +55,9 @@ func addUpdateReportLine(a AppUpdateReport, b *strings.Builder) {
 		health := ""
 		if a.AppHealthReport != nil {
 			if a.AppHealthReport.Healthy {
-				health = "Fetch worked"
+				health = "update worked"
 			} else {
-				health = "Fetch failed - " + a.AppHealthReport.ErrorMessage
+				health = "update failed - " + a.AppHealthReport.ErrorMessage
 			}
 		}
 		fmt.Fprintf(b, "- %s: %s\n", a.AppName, health)

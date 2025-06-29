@@ -1,35 +1,33 @@
 services:
-  gitea:
-    image: gitea/gitea:1.23.8
-    container_name: ocelotcloud_gitea_gitea
-    environment:
-      - USER_UID=1000
-      - USER_GID=1000
-      - GITEA__server__DOMAIN=gitea.${HOST}
-      - GITEA__server__ROOT_URL=https://gitea.${HOST}/
-      - GITEA__server__SSH_DOMAIN=gitea.${HOST}
-      - GITEA__database__DB_TYPE=postgres
-      - GITEA__database__HOST=ocelotcloud_gitea_postgres:5432
-      - GITEA__database__NAME=gitea
-      - GITEA__database__USER=gitea
-      - GITEA__database__PASSWD=gitea
-    volumes:
-      - ocelotcloud_gitea_gitea:/data
-    ports:
-      - "2222:22"
-    depends_on:
-      - db
-
-  db:
-    image: "postgres:17.4-alpine"
-    container_name: ocelotcloud_gitea_postgres
-    environment:
-      - POSTGRES_USER=gitea
-      - POSTGRES_PASSWORD=gitea
-      - POSTGRES_DB=gitea
-    volumes:
-      - ocelotcloud_gitea_postgres:/var/lib/postgresql/data
-
+    db:
+        container_name: ocelotcloud_gitea_postgres
+        environment:
+            - POSTGRES_USER=gitea
+            - POSTGRES_PASSWORD=gitea
+            - POSTGRES_DB=gitea
+        image: postgres:17.5-alpine
+        volumes:
+            - ocelotcloud_gitea_postgres:/var/lib/postgresql/data
+    gitea:
+        container_name: ocelotcloud_gitea_gitea
+        depends_on:
+            - db
+        environment:
+            - USER_UID=1000
+            - USER_GID=1000
+            - GITEA__server__DOMAIN=gitea.${HOST}
+            - GITEA__server__ROOT_URL=https://gitea.${HOST}/
+            - GITEA__server__SSH_DOMAIN=gitea.${HOST}
+            - GITEA__database__DB_TYPE=postgres
+            - GITEA__database__HOST=ocelotcloud_gitea_postgres:5432
+            - GITEA__database__NAME=gitea
+            - GITEA__database__USER=gitea
+            - GITEA__database__PASSWD=gitea
+        image: gitea/gitea:1.24.2
+        ports:
+            - "2222:22"
+        volumes:
+            - ocelotcloud_gitea_gitea:/data
 volumes:
-  ocelotcloud_gitea_gitea:
-  ocelotcloud_gitea_postgres:
+    ocelotcloud_gitea_gitea: null
+    ocelotcloud_gitea_postgres: null

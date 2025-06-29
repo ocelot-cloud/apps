@@ -24,11 +24,11 @@ func TestReportHealthWorked(t *testing.T) {
 func assertHealthReport(t *testing.T, expectedContent, actualReport string, wasHealthy bool) {
 	var expectedSummary string
 	if wasHealthy {
-		expectedSummary = "All apps are healthy"
+		expectedSummary = "all apps are healthy"
 	} else {
-		expectedSummary = "Some apps are unhealthy"
+		expectedSummary = "some apps are unhealthy"
 	}
-	expectedReport := fmt.Sprintf("\nHealth Check Report:\n\n"+expectedContent+"\nSummary: %s\n", expectedSummary)
+	expectedReport := fmt.Sprintf("\nHealth Check Report:\n\n"+expectedContent+"\nsummary: %s\n", expectedSummary)
 	assert.Equal(t, expectedReport, actualReport)
 
 }
@@ -73,7 +73,7 @@ func TestReportUpdateWorked(t *testing.T) {
 	}}
 	actualReport := reportUpdate(r)
 	expectedContent := `
-- sample-app: Fetch worked
+- sample-app: update worked
   - nginx: 1.0 -> 1.1
   - nginx2: 2.2 -> 2.3
 `
@@ -83,21 +83,21 @@ func TestReportUpdateWorked(t *testing.T) {
 func assertUpdateReport(t *testing.T, expectedContent, actualReport string, wasUpdateSuccessful bool) {
 	var expectedSummary string
 	if wasUpdateSuccessful {
-		expectedSummary = "Update successful"
+		expectedSummary = "update successful"
 	} else {
-		expectedSummary = "Update failed"
+		expectedSummary = "update failed"
 	}
-	expectedReport := fmt.Sprintf("\nUpdate Report:\n"+expectedContent+"\nSummary: %s\n", expectedSummary)
+	expectedReport := fmt.Sprintf("\nUpdate Report:\n"+expectedContent+"\nsummary: %s\n", expectedSummary)
 	assert.Equal(t, expectedReport, actualReport)
 }
 
 func TestReportUpdateFail(t *testing.T) {
 	r := UpdateReport{WasSuccessful: false, AppUpdateReport: []AppUpdateReport{
-		newUpd(false, true, nil, nil, "some-Fetch-error"),
+		newUpd(false, true, nil, nil, "some-update-error"),
 	}}
 	out := reportUpdate(r)
 	expectedContent := `
-- sample-app: Fetch failed - some-Fetch-error
+- sample-app: update failed - some-update-error
 `
 	assertUpdateReport(t, expectedContent, out, false)
 }
@@ -108,7 +108,7 @@ func TestReportUpdateNotAvailable(t *testing.T) {
 	}}
 	out := reportUpdate(r)
 	expectedContent := `
-- sample-app: no Fetch available
+- sample-app: no update available
 `
 	assertUpdateReport(t, expectedContent, out, true)
 }
@@ -116,11 +116,11 @@ func TestReportUpdateNotAvailable(t *testing.T) {
 func TestReportUpdateServiceFailed(t *testing.T) {
 	r := UpdateReport{WasSuccessful: false, AppUpdateReport: []AppUpdateReport{
 		newUpd(false, true, nil,
-			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service Fetch failed"),
+			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service update failed"),
 	}}
 	out := reportUpdate(r)
 	expectedContent := `
-- sample-app: service Fetch error - service Fetch failed
+- sample-app: service update error - service update failed
 `
 	assertUpdateReport(t, expectedContent, out, false)
 }
@@ -132,11 +132,11 @@ func TestReportUpdateWithHealthcheckFailed(t *testing.T) {
 			Healthy:      false,
 			ErrorMessage: "endpoint not available",
 		},
-			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service Fetch failed"),
+			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service update failed"),
 	}}
 	out := reportUpdate(r)
 	expectedContent := `
-- sample-app: Fetch failed - endpoint not available
+- sample-app: update failed - endpoint not available
   - nginx: 1.0 -> 1.1
 `
 	assertUpdateReport(t, expectedContent, out, false)
