@@ -8,7 +8,7 @@ Please read the [Community](https://ocelot-cloud.org/docs/community/) articles f
 
 ### Development
 
-Run `go generate ./...` to (re-)create test mocks. You only need a recent
+Run `go generate` to (re-)create test mocks. You only need a recent
 version of [`mockery`](https://github.com/vektra/mockery) installed in your
 `PATH`.
 

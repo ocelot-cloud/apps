@@ -2,16 +2,20 @@ TODOS
 
 features:
 * app selection: add argument []string, if empty perform on all apps, otherwise only on specified apps
-* updates should be written into the docker-compose.yml file
+* App Store Upload:
+  * updates should be written into the docker-compose.yml file
   * login to store
   * the api to access the app store should be put in the "shared" module to avoid duplication. It will be used in three components: updater, cloud, store
   * the upload needs the new zip, the app name and the version (taken from the main service in app updates)
   * when having automated updates, write that into threat model. Maybe buy a docker hub premium account in order to be able to download many images without rate limiting.
-* upload to app store, ideally automatically, check auth at the beginning, cache local token with key (rights = 600)
-  * maybe upload into a test repo just for now
-* idea: add a tool as an after-update-sanity-check -> "visit all git diffs and ensure on docker image tags have been changed" otherwise through error.
-* option to ignore updates on specific service, e.g. the database
-* concurrency: RunDocker(..., port) function executes its logic concurrently. However, we add a lock, that ensures that maximum one instance per port is running at the same time. Should make updates much faster
+  * upload to app store, ideally automatically, check auth at the beginning, cache local token with key (rights = 600)
+    * maybe upload into a test repo just for now
+* option to ignore updates on specific service, e.g. the database (blacklist); maybe option to apply apps with specific names (whitelist); for example "update mattermost", "update !nextcloud"; mixing is not allowed
+* concurrency: RunDocker(..., port) function executes its logic concurrently. However, we add a lock, that ensures that maximum one instance per port is running at the same time. Should make updates much faster.
+* complete README:
+  * Usage Guide
+  * Dockerhub Account recommendation for many apps
+  * App Store account
 
 * add apps?
   * take care of to-do folder: either make it a production app or remove it
