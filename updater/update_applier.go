@@ -1,14 +1,13 @@
 package main
 
 type UpdateApplierImpl struct {
-	appUpdater         SingleAppUpdater
+	appUpdater         AppUpdateFetcher
 	fileSystemOperator FileSystemOperator
 }
 
 // TODO write tests for this
-// TODO NewUpdateApplier function should take dependencies as parameters
 func (u *UpdateApplierImpl) ApplyUpdate(appDir string) (*AppUpdate, error) {
-	appUpdate, err := u.appUpdater.fetchAppUpdate(appDir)
+	appUpdate, err := u.appUpdater.Fetch(appDir)
 	if err != nil {
 		return nil, err
 	}

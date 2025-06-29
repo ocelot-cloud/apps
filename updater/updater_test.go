@@ -16,7 +16,7 @@ var (
 	healthCheckerMock    *HealthCheckerMock
 	singleAppUpdaterReal *SingleAppUpdaterImpl
 	dockerHubClientMock  *DockerHubClientMock
-	singleAppUpdaterMock *SingleAppUpdaterMock
+	appUpdateFetcherMock *AppUpdateFetcherMock
 
 	singleAppUpdateFileSystemOperatorMock *SingleAppUpdateFileSystemOperatorMock
 )

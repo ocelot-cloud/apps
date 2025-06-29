@@ -37,7 +37,7 @@ func NewFileSystemOperator() FileSystemOperator {
 	return &FileSystemOperatorImpl{}
 }
 
-func NewSingleAppUpdater(fs SingleAppUpdateFileSystemOperator, client DockerHubClient) SingleAppUpdater {
+func NewSingleAppUpdater(fs SingleAppUpdateFileSystemOperator, client DockerHubClient) AppUpdateFetcher {
 	return &SingleAppUpdaterImpl{
 		fsOperator:      fs,
 		dockerHubClient: client,
@@ -65,7 +65,7 @@ func NewFileSystemUpdateOperator() SingleAppUpdateFileSystemOperator {
 
 // TODO can FileSystemOperator be separated?
 
-func NewUpdateApplier(appUpdater SingleAppUpdater, fileSystemOperator FileSystemOperator) UpdateApplier {
+func NewUpdateApplier(appUpdater AppUpdateFetcher, fileSystemOperator FileSystemOperator) UpdateApplier {
 	return &UpdateApplierImpl{
 		appUpdater:         appUpdater,
 		fileSystemOperator: fileSystemOperator,

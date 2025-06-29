@@ -73,7 +73,7 @@ func TestReportUpdateWorked(t *testing.T) {
 	}}
 	actualReport := reportUpdate(r)
 	expectedContent := `
-- sample-app: fetchAppUpdate worked
+- sample-app: Fetch worked
   - nginx: 1.0 -> 1.1
   - nginx2: 2.2 -> 2.3
 `
@@ -93,11 +93,11 @@ func assertUpdateReport(t *testing.T, expectedContent, actualReport string, wasU
 
 func TestReportUpdateFail(t *testing.T) {
 	r := UpdateReport{WasSuccessful: false, AppUpdateReport: []AppUpdateReport{
-		newUpd(false, true, nil, nil, "some-fetchAppUpdate-error"),
+		newUpd(false, true, nil, nil, "some-Fetch-error"),
 	}}
 	out := reportUpdate(r)
 	expectedContent := `
-- sample-app: fetchAppUpdate failed - some-fetchAppUpdate-error
+- sample-app: Fetch failed - some-Fetch-error
 `
 	assertUpdateReport(t, expectedContent, out, false)
 }
@@ -108,7 +108,7 @@ func TestReportUpdateNotAvailable(t *testing.T) {
 	}}
 	out := reportUpdate(r)
 	expectedContent := `
-- sample-app: no fetchAppUpdate available
+- sample-app: no Fetch available
 `
 	assertUpdateReport(t, expectedContent, out, true)
 }
@@ -116,11 +116,11 @@ func TestReportUpdateNotAvailable(t *testing.T) {
 func TestReportUpdateServiceFailed(t *testing.T) {
 	r := UpdateReport{WasSuccessful: false, AppUpdateReport: []AppUpdateReport{
 		newUpd(false, true, nil,
-			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service fetchAppUpdate failed"),
+			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service Fetch failed"),
 	}}
 	out := reportUpdate(r)
 	expectedContent := `
-- sample-app: service fetchAppUpdate error - service fetchAppUpdate failed
+- sample-app: service Fetch error - service Fetch failed
 `
 	assertUpdateReport(t, expectedContent, out, false)
 }
@@ -128,15 +128,15 @@ func TestReportUpdateServiceFailed(t *testing.T) {
 func TestReportUpdateWithHealthcheckFailed(t *testing.T) {
 	r := UpdateReport{WasSuccessful: false, AppUpdateReport: []AppUpdateReport{
 		newUpd(true, true, &AppHealthReport{
-			AppName:      "sample-app2", // to be ignored in report as it is already in app fetchAppUpdate report
+			AppName:      "sample-app2", // to be ignored in report as it is already in app Fetch report
 			Healthy:      false,
 			ErrorMessage: "endpoint not available",
 		},
-			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service fetchAppUpdate failed"),
+			[]ServiceUpdate{{ServiceName: "nginx", OldTag: "1.0", NewTag: "1.1"}}, "service Fetch failed"),
 	}}
 	out := reportUpdate(r)
 	expectedContent := `
-- sample-app: fetchAppUpdate failed - endpoint not available
+- sample-app: Fetch failed - endpoint not available
   - nginx: 1.0 -> 1.1
 `
 	assertUpdateReport(t, expectedContent, out, false)

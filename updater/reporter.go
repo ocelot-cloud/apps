@@ -42,12 +42,12 @@ func addUpdateReportLine(a AppUpdateReport, b *strings.Builder) {
 	switch {
 	case !a.WasSuccessful:
 		if a.AppUpdates != nil && len(a.AppUpdates.ServiceUpdates) > 0 && a.AppUpdates.ErrorMessage != "" {
-			fmt.Fprintf(b, "- %s: service fetchAppUpdate error - %s\n", a.AppName, a.AppUpdates.ErrorMessage)
+			fmt.Fprintf(b, "- %s: service Fetch error - %s\n", a.AppName, a.AppUpdates.ErrorMessage)
 		} else {
-			fmt.Fprintf(b, "- %s: fetchAppUpdate failed - %s\n", a.AppName, a.UpdateErrorMessage)
+			fmt.Fprintf(b, "- %s: Fetch failed - %s\n", a.AppName, a.UpdateErrorMessage)
 		}
 	case !a.WasUpdateAvailable:
-		fmt.Fprintf(b, "- %s: no fetchAppUpdate available\n", a.AppName)
+		fmt.Fprintf(b, "- %s: no Fetch available\n", a.AppName)
 	default:
 		parts := make([]string, 0, len(a.AppUpdates.ServiceUpdates))
 		for _, s := range a.AppUpdates.ServiceUpdates {
@@ -56,9 +56,9 @@ func addUpdateReportLine(a AppUpdateReport, b *strings.Builder) {
 		health := ""
 		if a.AppHealthReport != nil {
 			if a.AppHealthReport.Healthy {
-				health = "fetchAppUpdate worked"
+				health = "Fetch worked"
 			} else {
-				health = "fetchAppUpdate failed - " + a.AppHealthReport.ErrorMessage
+				health = "Fetch failed - " + a.AppHealthReport.ErrorMessage
 			}
 		}
 		fmt.Fprintf(b, "- %s: %s\n", a.AppName, health)

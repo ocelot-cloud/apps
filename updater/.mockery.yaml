@@ -19,11 +19,11 @@ packages:
           filename: updater_endpoint_checker_mock.go
           structname: EndpointCheckerMock
           pkgname: main
-      SingleAppUpdater:
+      AppUpdateFetcher:
         config:
           dir: .
           filename: updater_single_app_updater_mock.go
-          structname: SingleAppUpdaterMock
+          structname: AppUpdateFetcherMock
           pkgname: main
       SingleAppUpdateFileSystemOperator:
         config:

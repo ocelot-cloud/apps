@@ -24,8 +24,8 @@ type EndpointChecker interface {
 }
 
 //go:generate mockery
-type SingleAppUpdater interface {
-	fetchAppUpdate(appDir string) (*AppUpdate, error)
+type AppUpdateFetcher interface {
+	Fetch(appDir string) (*AppUpdate, error)
 }
 
 //go:generate mockery
