@@ -1,7 +1,12 @@
 TODOS
 
+* if app was not found in GetListOfApps, abort and print error
+* add check, whether docker compose file is valid (using shared library)
+
 features:
-* app selection: add argument []string, if empty perform on all apps, otherwise only on specified apps
+* Last point I worked on:
+  * app selection: add argument []string, if empty perform on all apps, otherwise only on specified apps
+  * idea: since performHalthchecks() and update() both need this whitelisting feature, I could abstract that. I put a shared service in front of both, getting all apps in appsDIr, and then pass the filterdApps To the functions
 * App Store Upload:
   * updates should be written into the docker-compose.yml file
   * login to store
